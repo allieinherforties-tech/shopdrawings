@@ -8,7 +8,6 @@ import pytest
 from ezdxf.entities.lwpolyline import LWPolyline
 from ezdxf.filemanagement import readfile
 
-from _builders import rename_object
 from shop_drawings import FurnitureSpec, PartType, Units
 from shop_drawings.generation.config import GenerationConfig
 from shop_drawings.generation.dxf import write_cut_sheets
@@ -22,6 +21,7 @@ from shop_drawings.generation.verify import (
     check_roundtrip,
     check_traceability,
 )
+from tests.generation._builders import rename_object
 
 
 def _panel_plan(**overrides: Any) -> PartPlan:

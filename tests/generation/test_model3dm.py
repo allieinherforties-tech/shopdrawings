@@ -4,12 +4,12 @@ from pathlib import Path
 
 import rhino3dm
 
-from _builders import layer_names_of, objects_of, read_model, rename_object
 from shop_drawings import FurnitureSpec
 from shop_drawings.generation.config import GenerationConfig
 from shop_drawings.generation.geometry import resolve_part
 from shop_drawings.generation.model3dm import build_model, write_model
 from shop_drawings.generation.verify import digest_model
+from tests.generation._builders import layer_names_of, objects_of, read_model, rename_object
 
 
 def _fixture_model(spec: FurnitureSpec, config: GenerationConfig) -> rhino3dm.File3dm:

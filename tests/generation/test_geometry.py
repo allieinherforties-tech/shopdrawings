@@ -5,10 +5,10 @@ from typing import Any
 
 import pytest
 
-from _builders import approved_feature, approved_part, sourced_dimension
 from shop_drawings import FurnitureSpec, PartType
 from shop_drawings.generation.errors import UnresolvablePartError
 from shop_drawings.generation.geometry import resolve_part
+from tests.generation._builders import approved_feature, approved_part, sourced_dimension
 
 
 def test_the_fixture_panel_resolves_to_exact_geometry(approved_spec: FurnitureSpec) -> None:

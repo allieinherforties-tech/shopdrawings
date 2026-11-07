@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop Drawings — Review Gate</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header id="header">
+    <div class="header-row">
+      <div>
+        <h1>Review Gate</h1>
+        <p id="project-meta" class="meta"></p>
+      </div>
+      <div class="header-actions">
+        <span id="status-badge" class="badge"></span>
+        <span id="blocking-chip" class="chip"></span>
+        <button id="approve-btn" class="primary">Approve spec</button>
+      </div>
+    </div>
+    <div id="banner" class="banner" hidden></div>
+  </header>
+
+  <main id="main">
+    <section id="sec-questions" aria-labelledby="h-questions">
+      <h2 id="h-questions">Blocked questions <span class="count" id="count-questions"></span></h2>
+      <p class="section-hint">The extractor could not resolve these. Answer from your knowledge of the job — the answer is recorded in the review log, and any value it changes should be corrected below.</p>
+      <div id="questions" class="stack"></div>
+    </section>
+
+    <section id="sec-conflicts" aria-labelledby="h-conflicts">
+      <h2 id="h-conflicts">Conflicts <span class="count" id="count-conflicts"></span></h2>
+      <p class="section-hint">Extracted values that disagree. Both sides are shown with the exact region on the source page each was read from. Correct the wrong one below (or in the low-confidence section if it appears there).</p>
+      <div id="conflicts" class="stack"></div>
+    </section>
+
+    <section id="sec-lowconf" aria-labelledby="h-lowconf">
+      <h2 id="h-lowconf">Low-confidence associations <span class="count" id="count-lowconf"></span></h2>
+      <p class="section-hint">Each value → the part and feature it was assigned to → extraction confidence → the source crop. Confirm, or retype the value.</p>
+      <div id="lowconf" class="stack"></div>
+    </section>
+
+    <section id="sec-values" aria-labelledby="h-values">
+      <div class="section-head">
+        <div>
+          <h2 id="h-values">All extracted values <span class="count" id="count-values"></span></h2>
+          <p class="section-hint">High-confidence values. Spot-check any crop, then confirm all at once.</p>
+        </div>
+        <button id="confirm-all-btn" class="secondary">Confirm all remaining</button>
+      </div>
+      <div id="values"></div>
+    </section>
+
+    <section id="sec-log" aria-labelledby="h-log">
+      <h2 id="h-log">Review log</h2>
+      <p class="section-hint">Every reviewer action, in order — corrections are also written back into the spec file itself.</p>
+      <ul id="log" class="log"></ul>
+    </section>
+  </main>
+
+  <div id="crop-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <figure class="modal-body" id="crop-modal-body"></figure>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -7,12 +7,18 @@ from typing import Any
 
 import pytest
 
-from _builders import approved_feature, objects_of, read_model, sourced_dimension, spec_with_parts
 from shop_drawings import FurnitureSpec
 from shop_drawings.generation import generate
 from shop_drawings.generation.config import GenerationConfig
 from shop_drawings.generation.errors import FabricationError, NotApprovedError
 from shop_drawings.generation.verify import CheckStatus
+from tests.generation._builders import (
+    approved_feature,
+    objects_of,
+    read_model,
+    sourced_dimension,
+    spec_with_parts,
+)
 
 
 def test_the_approved_fixture_generates_model_sheets_and_cut_list(
