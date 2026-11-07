@@ -5,11 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "shop-drawings"
 version = "0.1.0"
-description = "Typed furniture specification schema for the Shop Drawings design-to-fabrication pipeline"
+description = "Typed furniture specification schema and deterministic generation engine for the Shop Drawings design-to-fabrication pipeline"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.7,<3",
+    "rhino3dm>=8.35,<9",
+    "ezdxf>=1.4,<2",
 ]
 
 [project.optional-dependencies]

@@ -7,6 +7,9 @@ from typing import Any
 
 import pytest
 
+from shop_drawings import FurnitureSpec
+from shop_drawings.generation.config import GenerationConfig
+
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
@@ -34,3 +37,15 @@ def approved_spec_dict(cabinet_spec_dict: dict[str, Any]) -> dict[str, Any]:
     for constraint in spec["constraints"]:
         constraint["status"] = "approved"
     return spec
+
+
+@pytest.fixture
+def approved_spec(approved_spec_dict: dict[str, Any]) -> FurnitureSpec:
+    """The approved cabinet fixture, validated against the real schema."""
+    return FurnitureSpec.model_validate(approved_spec_dict)
+
+
+@pytest.fixture
+def default_config() -> GenerationConfig:
+    """The v1 default studio configuration."""
+    return GenerationConfig()
