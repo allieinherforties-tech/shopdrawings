@@ -7,10 +7,17 @@ spec of record; read §3 (architecture) and §5 (verification) before schema wor
 ## Layout
 
 - `src/shop_drawings/` — package code. `schema.py` is the typed specification
-  contract every pipeline stage builds against; `generation/` is the
-  deterministic generation engine (config, geometry primitives, .3dm and DXF
-  writers, cut list, escalation packages, verification checks, entry point).
-- `tests/fixtures/` — representative spec JSON (the blueprint §3 cabinet).
+  contract every pipeline stage builds against; `extraction/` reads designs
+  into draft specs; `validation/` runs the §5 structural checks;
+  `review/` is the FastAPI review gate; `generation/` is the deterministic
+  generation engine (config, geometry primitives, .3dm and DXF writers, cut
+  list, escalation packages, verification checks, entry point).
+- `tests/fixtures/` — representative spec JSON (the blueprint §3 cabinet) and
+  the ReportLab cabinet drawing builder.
+- `tests/golden/` — the end-to-end orchestrator (`run_pipeline.py`), the E2E
+  tests, golden-file pins under `files/`, and the evaluation metrics.
+- `tests/negative/` — the four blocked paths, one per layer.
+- `scripts/e2e_proof.py` — runnable end-to-end proof for demos and CI.
 - `tests/_builders.py` — shared spec/model helpers, including the typed
   rhino3dm stub workarounds; use these instead of new `type: ignore` lines.
 
@@ -18,9 +25,11 @@ spec of record; read §3 (architecture) and §5 (verification) before schema wor
 
 ```bash
 pip install -e ".[dev]"                 # set up (use a venv)
-pytest                                  # tests
+pytest                                  # tests (incl. E2E + golden verify)
 ruff check . && ruff format --check .   # lint
 mypy src tests                          # types (strict)
+python scripts/e2e_proof.py             # end-to-end proof with printed evidence
+SHOP_DRAWINGS_REGEN_GOLDEN=1 pytest tests/golden/test_golden_files.py  # re-pin goldens (deliberate changes only)
 ```
 
 ## Rules

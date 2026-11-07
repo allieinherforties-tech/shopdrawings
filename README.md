@@ -1,24 +1,32 @@
 # shop-drawings
 
-Typed furniture specifications for the studio's design-to-fabrication pipeline:
-an approved or redlined design goes in, a **reviewed spec** crosses the gate,
-and fabrication files (Rhino `.3dm`, DXF cut sheets) come out.
-
-This package ships v1 of the **furniture specification schema** — the typed
-contract every other pipeline stage (extraction, validation, review UI,
-generation) builds against. The blueprint "Shop Drawings v1 —
-Design-to-Fabrication Pipeline" is the spec of record.
+The integrated design-to-fabrication pipeline: an approved or redlined design
+goes in, a **reviewed spec** crosses the gate, and fabrication files (Rhino
+`.3dm`, DXF cut sheets, cut list) come out. AI reads and extracts; a human
+approves; deterministic code draws.
 
 ## How it fits together
 
-- **AI never draws fabrication geometry.** Extraction reads the design and
-  emits a `FurnitureSpec`: typed, source-traceable, with a confidence score
-  per value and explicit `unresolved_questions` where the drawing is ambiguous.
-- **A human approves the spec.** The schema enforces the review gate itself:
-  a spec marked `approved` while questions are open or values are unreviewed
-  fails validation.
-- **Code generates the files.** Generation draws every output from the
-  approved spec — the spec is the single source of truth.
+Four layers, one artifact type at each boundary:
+
+- **Extraction** (`extraction/`) reads the design — page-aware PDF text plus
+  rendered pages, deterministic parsing, optional vision-assisted callout
+  reading — and emits a `FurnitureSpec`: typed, source-traceable, with a
+  confidence score per value and explicit `unresolved_questions` where the
+  drawing is ambiguous.
+- **Validation** (`validation/`) runs the blueprint §5 structural checks on
+  every spec: traceability, conflict grouping, constraint closure, geometric
+  sanity. `approval_blockers` composes those with the schema's own review
+  gate so one call decides whether a spec may be approved.
+- **Review** (`review/`) is the human gate: a FastAPI app + browser UI that
+  surfaces blocked questions, conflicts, and low-confidence values with their
+  source crops, records corrections to an append-only review log, and writes
+  the approved spec.
+- **Generation** (`generation/`) is deterministic: rhino3dm builds the model
+  and stamps fabrication metadata; ezdxf writes DXF cut sheets; unsupported
+  geometry escalates with a complete package instead of guessed geometry.
+  Every job runs verification checks; a failed check removes every file the
+  job wrote.
 
 ## Schema at a glance
 
@@ -94,7 +102,27 @@ result = generate(spec, GenerationConfig(), output_dir)  # raises if not approve
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest
+pytest                                   # all layers + E2E + golden verify
 ruff check . && ruff format --check .
 mypy src tests
+python scripts/e2e_proof.py              # the whole loop, evidence printed
 ```
+
+### Verification suite
+
+- **`tests/golden/test_e2e_pipeline.py`** — the full loop on the ReportLab
+  cabinet fixture: design PDF → extraction → validation → review flow (the
+  fixture's six unresolved questions answered through the review HTTP API) →
+  approval → generation, with the model's dimensions verified programmatically.
+- **`tests/golden/test_golden_files.py`** — pins the approved spec JSON, the
+  `.3dm` content digest, the DXF sheet (writer volatiles normalized — see
+  `tests/golden/dxf_digest.py`), and the cut list; every future run must
+  reproduce them. Re-pin deliberately:
+  `SHOP_DRAWINGS_REGEN_GOLDEN=1 pytest tests/golden/test_golden_files.py`.
+- **`tests/negative/test_blocked_paths.py`** — the four blocked paths: an
+  untraceable value, an unresolved question on approval, a failing closure
+  check, and a not-approved spec each stop at their own layer with the right
+  message.
+- **`scripts/e2e_proof.py`** — the runnable proof for demos and CI logs.
+- CI (`.github/workflows/ci.yml`) runs lint, strict types, the full suite,
+  the E2E proof, and the golden verify on every push and PR.

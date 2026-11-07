@@ -26,3 +26,10 @@ jobs:
         run: mypy src tests
       - name: Test
         run: pytest
+      - name: End-to-end proof
+        run: python scripts/e2e_proof.py
+      - name: Golden files (verify mode)
+        run: pytest tests/golden/test_golden_files.py -q --strict-markers
+        env:
+          # Verify mode is the default; make the contract explicit.
+          SHOP_DRAWINGS_REGEN_GOLDEN: ""
