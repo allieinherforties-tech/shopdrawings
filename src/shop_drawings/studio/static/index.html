@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop Drawings — Studio</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div>
+        <h1>Shop Drawings</h1>
+        <p class="meta">from design file to fabrication-ready outputs</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="upload-card" class="card">
+      <h2>Upload a design</h2>
+      <p class="section-hint">Drop a drawing below. We read it into a spec you
+      check and approve — every number traces back to the page it came from,
+      and nothing is fabricated without your sign-off.</p>
+
+      <div id="dropzone" tabindex="0" role="button"
+           aria-label="Choose or drop a design file">
+        <p class="dropzone-title">Drop a design file here</p>
+        <p class="dropzone-sub">or <span class="linklike">browse your files</span></p>
+        <p class="dropzone-hint">PDF drawings, or photos of one — PNG, JPG, WEBP. Up to 25&nbsp;MB.</p>
+        <input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg,.webp" hidden>
+      </div>
+
+      <div id="upload-error" class="banner error-banner" hidden></div>
+      <div id="upload-progress" class="banner progress-banner" hidden>
+        Reading your design… this usually takes a few seconds.
+      </div>
+    </section>
+
+    <section aria-labelledby="h-flow">
+      <h2 id="h-flow">How it works</h2>
+      <ol id="flow" class="flow">
+        <li><strong>Upload</strong> — drop in the design drawing for one piece.</li>
+        <li><strong>Extraction</strong> — the drawing is read into a typed
+        spec: parts, dimensions, and assembly notes, each traced to the
+        exact spot on the page it came from.</li>
+        <li><strong>Review</strong> — you answer the questions the reader
+        couldn't resolve, confirm values against highlighted crops, and
+        approve. Nothing proceeds on a guess.</li>
+        <li><strong>Outputs</strong> — once approved, the spec generates a
+        3D model, a DXF cut sheet, and a cut list.</li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="h-jobs">
+      <h2 id="h-jobs">Recent jobs</h2>
+      <p class="section-hint">Every design you've uploaded, newest first.</p>
+      <div id="jobs" class="stack">
+        <p class="empty">No jobs yet — upload your first design above.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

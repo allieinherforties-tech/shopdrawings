@@ -1,0 +1,182 @@
+/* Shop Drawings — Studio landing page.
+   Same workshop aesthetic as the review gate: warm paper ground, ink text,
+   one red accent for anything blocking, green for approval. */
+
+:root {
+  --paper: #f5f4f1;
+  --card: #ffffff;
+  --ink: #1a1d21;
+  --muted: #6b675f;
+  --line: #ddd8d0;
+  --red: #b3382c;
+  --red-bg: #fbeeed;
+  --amber: #9a6a1f;
+  --amber-bg: #faf3e3;
+  --green: #2e6b4f;
+  --green-bg: #e9f3ee;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: ui-sans-serif, system-ui, "Helvetica Neue", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 8px 24px 64px;
+}
+
+header {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 24px 12px;
+}
+
+h1 {
+  font-size: 20px;
+  letter-spacing: 0.01em;
+  margin: 0;
+  font-weight: 650;
+}
+
+h2 {
+  font-size: 15px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+
+h3 { font-size: 14px; margin: 18px 0 4px; }
+
+section { margin: 28px 0; }
+
+.section-hint { color: var(--muted); font-size: 13.5px; margin: 2px 0 12px; }
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.meta { color: var(--muted); font-size: 13px; margin: 4px 0 0; font-family: var(--mono); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+/* ---------- dropzone ---------- */
+
+#dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms;
+}
+#dropzone:hover, #dropzone:focus-visible, #dropzone.dragover {
+  border-color: var(--ink);
+  background: #fbfaf8;
+  outline: none;
+}
+
+.dropzone-title { font-size: 16px; font-weight: 650; margin: 0 0 2px; }
+.dropzone-sub { margin: 0; color: var(--muted); }
+.dropzone-hint { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+.linklike { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- banners ---------- */
+
+.banner {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+}
+.error-banner { background: var(--red-bg); color: var(--red); border: 1px solid #e5c4bf; }
+.progress-banner { background: var(--blue-bg); color: #2b5d8a; border: 1px solid #c7d9ea; }
+
+/* ---------- flow ---------- */
+
+.flow { margin: 8px 0 0; padding-left: 20px; max-width: 720px; }
+.flow li { margin-bottom: 8px; }
+
+/* ---------- jobs list ---------- */
+
+.stack > * + * { margin-top: 8px; }
+
+.empty { color: var(--muted); font-style: italic; }
+
+.job {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.job-name { font-weight: 600; }
+.job-meta { color: var(--muted); font-size: 12.5px; font-family: var(--mono); margin-top: 2px; }
+
+.status-badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+.status-badge.approved { background: var(--green-bg); color: var(--green); }
+.status-badge.failed { background: var(--red-bg); color: var(--red); }
+
+/* ---------- buttons ---------- */
+
+.button-link {
+  font-size: 13.5px;
+  font-weight: 550;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  padding: 7px 14px;
+  text-decoration: none;
+  display: inline-block;
+}
+.button-link:hover { border-color: var(--muted); }
+
+/* ---------- failed page ---------- */
+
+.error-detail {
+  background: var(--red-bg);
+  border: 1px solid #e5c4bf;
+  border-radius: 8px;
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 10px 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.lede { margin: 4px 0 0; }
