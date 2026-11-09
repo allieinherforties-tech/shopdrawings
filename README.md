@@ -1,4 +1,4 @@
-# shop-drawings
+# shopdrawings
 
 The integrated design-to-fabrication pipeline: an approved or redlined design
 goes in, a **reviewed spec** crosses the gate, and fabrication files (Rhino
