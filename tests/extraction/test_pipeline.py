@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Callable
 from pathlib import Path
@@ -406,3 +407,134 @@ def test_vision_observations_record_what_became_of_each_callout(
     assert by_text["DEPTH 380"] == "upgraded"
     assert by_text["18MM OAK"] == "proposed"
     assert by_text["700"] == "question"
+
+
+# --- Real-sheet regression: live job 20261109-185416-21ddac20 -------------
+# The Globus v4 rerun duplicated every part (drawer_front_2, case_top_2, …):
+# callouts that re-read lines the text layer already had failed the old
+# match predicate (exact text + tight padded-region containment) and were
+# synthesized as new blocks instead of upgrading in place.
+
+
+def _globus_v4_callouts() -> tuple[VisionCallout, ...]:
+    """The 69 real callouts the deployed model reported for the Globus v4 sheet."""
+    path = Path(__file__).parents[1] / "fixtures" / "globus_redline_v4_callouts.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return tuple(
+        VisionCallout(
+            text=c["text"],
+            page=c["page"],
+            region=tuple(c["region"]),
+            role=c["role"],
+            part_label=c["part_label"],
+            confidence=c["confidence"],
+        )
+        for c in payload["observations"]
+    )
+
+
+def test_real_sheet_callouts_match_text_layer_instead_of_duplicating_parts(
+    globus_v4_pdf: Path, stub_vision: Callable[..., Any]
+) -> None:
+    text_only = extract_spec(globus_v4_pdf)
+    assert len(text_only.spec.parts) == 8
+
+    client = stub_vision(*_globus_v4_callouts())
+    result = extract_spec(globus_v4_pdf, vision_client=client)
+    # The parts-schedule callouts re-read lines the text layer already has
+    # (with real vision region drift), so the merged spec gains no parts.
+    assert len(result.spec.parts) == len(text_only.spec.parts) == 8
+
+    # 'WIDTH 21.75 IN' is schedule line 2 — the one the live job duplicated
+    # as drawer_front_2. Its region drifted, its text matched exactly.
+    assert result.vision is not None
+    by_text = {o.text: o.outcome for o in result.vision.observations}
+    assert by_text["WIDTH 21.75 IN"] == "upgraded"
+
+
+def test_second_reading_of_the_same_line_does_not_synthesize(
+    globus_v4_pdf: Path, stub_vision: Callable[..., Any]
+) -> None:
+    callout = VisionCallout(
+        text="WIDTH 21.75 IN",
+        page=2,
+        region=(0.10, 0.16, 0.22, 0.175),
+        role="width",
+        part_label=None,
+        confidence=0.95,
+    )
+    text_only = extract_spec(globus_v4_pdf)
+    result = extract_spec(globus_v4_pdf, vision_client=stub_vision(callout, callout))
+
+    assert result.vision is not None
+    outcomes = [o.outcome for o in result.vision.observations]
+    assert outcomes == ["upgraded", "upgraded"]
+    # Both readings upgrade the same block in place: no synthesized block,
+    # so the merged document holds exactly the text layer's blocks.
+    assert len(result.document.blocks) == len(text_only.document.blocks)
+
+
+def test_unmatched_callout_still_synthesizes_a_block(
+    globus_v4_pdf: Path, stub_vision: Callable[..., Any]
+) -> None:
+    # '0.75 TOP' is a rotated dimension label; pdfplumber's line for that
+    # spot is reversed glyph garbage, so no text-layer block can match it.
+    callout = VisionCallout(
+        text="0.75 TOP",
+        page=1,
+        region=(0.43, 0.18, 0.45, 0.25),
+        role="thickness",
+        part_label=None,
+        confidence=0.85,
+    )
+    text_only = extract_spec(globus_v4_pdf)
+    result = extract_spec(globus_v4_pdf, vision_client=stub_vision(callout))
+
+    assert result.vision is not None
+    assert result.vision.observations[0].outcome == "proposed"
+    assert len(result.document.blocks) == len(text_only.document.blocks) + 1
+
+
+def test_below_floor_unmatched_callout_becomes_a_question(
+    globus_v4_pdf: Path, stub_vision: Callable[..., Any]
+) -> None:
+    # Unmatched and below the floor: never a value, only a question.
+    callout = VisionCallout(
+        text="1.5 DIA UNCLEAR",
+        page=2,
+        region=(0.10, 0.59, 0.20, 0.60),
+        role="diameter",
+        part_label=None,
+        confidence=0.50,
+    )
+    result = extract_spec(globus_v4_pdf, vision_client=stub_vision(callout))
+
+    assert result.vision is not None
+    assert result.vision.observations[0].outcome == "question"
+    joined = "\n".join(result.spec.unresolved_questions)
+    assert "1.5 DIA UNCLEAR" in joined
+
+
+def test_below_floor_matching_callout_upgrades_but_caps_confidence(
+    globus_v4_pdf: Path, stub_vision: Callable[..., Any]
+) -> None:
+    # The merge-level floor gates unmatched callouts only: a below-floor
+    # reading of a line the text layer has upgrades that block in place —
+    # text-layer regions win — and carries the model's doubt as the block's
+    # confidence cap (what the parse then does with a capped block is
+    # associate.py's concern, tested there).
+    callout = VisionCallout(
+        text="DIA 1.0 IN",
+        page=2,
+        region=(0.10, 0.59, 0.20, 0.60),
+        role="diameter",
+        part_label=None,
+        confidence=0.50,
+    )
+    result = extract_spec(globus_v4_pdf, vision_client=stub_vision(callout))
+
+    assert result.vision is not None
+    assert result.vision.observations[0].outcome == "upgraded"
+    block = next(b for b in result.document.blocks if b.text == "DIA 1.0 IN")
+    assert block.vision_confidence == 0.50
+    assert block.role == "diameter"

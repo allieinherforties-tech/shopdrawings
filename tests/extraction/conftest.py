@@ -10,6 +10,12 @@ from tests.fixtures.cabinet_pdf import create_cabinet_pdf
 
 
 @pytest.fixture(scope="session")
+def globus_v4_pdf() -> Path:
+    """The real two-sheet Globus redline v4 from live job 20261109-185416-21ddac20."""
+    return Path(__file__).parents[1] / "fixtures" / "globus_redline_v4.pdf"
+
+
+@pytest.fixture(scope="session")
 def cabinet_pdf(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """The representative A3 cabinet drawing, rendered once per session."""
     return create_cabinet_pdf(tmp_path_factory.mktemp("cabinet") / "entry-cabinet-001.pdf")

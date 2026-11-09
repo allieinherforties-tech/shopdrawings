@@ -23,9 +23,10 @@ attachment earns its place later.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Literal
+from typing import Final, Literal
 
 from shop_drawings.schema import FurnitureSpec
 
@@ -214,7 +215,9 @@ def merge_vision_callouts_reported(
 
     for callout in callouts:
         index = _find_text_layer_match(document, callout)
-        if index is not None and index not in upgraded:
+        if index is not None:
+            # A second model reading of the same line re-upgrades the block
+            # (re-capping its confidence) rather than synthesizing a duplicate.
             original = document.blocks[index]
             upgraded[index] = replace(
                 original,
@@ -265,19 +268,68 @@ def _block_from(callout: VisionCallout) -> TextBlock:
 def _find_text_layer_match(document: DesignDocument, callout: VisionCallout) -> int | None:
     """Index of the text-layer block the callout re-read, if any.
 
-    Text must match exactly after whitespace normalization, and the callout's
-    (padded) region must contain the block — vision boxes wobble, words do not.
+    The model may read a line in pieces the text layer groups differently —
+    a fragment of a merged visual line ("FRONT ELEVATION (1:7.6)" inside
+    "FRONT ELEVATION (1:7.6) SIDE ELEVATION (1:7.6)"), or the whole line
+    with different dash/whitespace variants — so text matches when the
+    normalized token sequences are equal or one is a contiguous run of the
+    other. The region only has to agree that these are the same line: vision
+    boxes wobble and drift (on live sheets by up to a quarter page toward
+    the bottom, see _MATCH_REGION_TOLERANCE), so either box must cover the
+    other's center or the centers must sit within the tolerance. Text
+    quality ranks ahead of region fit: an exact reading beats a fragment,
+    then the nearer center wins.
     """
-    wanted = " ".join(callout.text.upper().split())
-    hunt_area = Region(*callout.region).padded(0.5)
+    wanted = _match_tokens(callout.text)
+    hunt = Region(*callout.region)
+    best: tuple[tuple[int, float], int] | None = None
     for index, block in enumerate(document.blocks):
         if block.page != callout.page:
             continue
-        if " ".join(block.text.upper().split()) != wanted:
+        have = _match_tokens(block.text)
+        if wanted == have:
+            tier = 0
+        elif _tokens_contained(wanted, have) or _tokens_contained(have, wanted):
+            tier = 1
+        else:
             continue
-        if hunt_area.contains(block.region):
-            return index
-    return None
+        if not (
+            hunt.contains(block.region)
+            or block.region.contains(hunt)
+            or hunt.center_distance(block.region) <= _MATCH_REGION_TOLERANCE
+        ):
+            continue
+        rank = (tier, hunt.center_distance(block.region))
+        if best is None or rank < best[0]:
+            best = (rank, index)
+    return None if best is None else best[1]
+
+
+#: How far a callout's region may sit from a text-layer block's region and
+#: still be "pointing at" that line, in normalized page units. The text match
+#: is the discriminating signal; vision boxes merely locate the neighborhood.
+#: Live job 20261109-185416-21ddac20 (Globus v4 parts schedule) showed the
+#: model's y-coordinates drifting up to ~0.26 of page height on dense sheets
+#: — far beyond any box-padding wobble, but the token text still matched
+#: exactly. Page-sized or generous regions still match everything through
+#: the covers-the-center check.
+_MATCH_REGION_TOLERANCE: Final = 0.3
+
+
+def _match_tokens(text: str) -> list[str]:
+    """Case-folded whitespace tokens, dash variants unified, digits split
+    from following letters so "21.75IN" matches "21.75 IN"."""
+    folded = re.sub(r"[\u2212\u2013\u2014]", "-", text.upper())
+    folded = re.sub(r"(?<=\d)(?=[A-Z])", " ", folded)
+    return folded.split()
+
+
+def _tokens_contained(needle: list[str], haystack: list[str]) -> bool:
+    """True when ``needle`` appears in ``haystack`` as a contiguous run."""
+    span = len(needle)
+    return span > 0 and any(
+        haystack[i : i + span] == needle for i in range(len(haystack) - span + 1)
+    )
 
 
 def _mark_unreadable(spec: FurnitureSpec, source_name: str) -> FurnitureSpec:
