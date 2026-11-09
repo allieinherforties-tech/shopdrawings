@@ -19,9 +19,12 @@ import json
 import os
 import re
 from dataclasses import dataclass
-from typing import Final, Protocol
+from typing import TYPE_CHECKING, Final, Protocol
 
 from .models import KNOWN_ROLES, DesignDocument
+
+if TYPE_CHECKING:
+    import anthropic
 
 _MAX_TOKENS: Final = 16384
 
@@ -131,6 +134,30 @@ def parse_callouts(payload: str) -> tuple[VisionCallout, ...]:
     return tuple(callouts)
 
 
+def salvage_callouts(payload: str) -> tuple[VisionCallout, ...]:
+    """Recover every complete callout entry from a malformed response.
+
+    Scans the raw text for objects that still decode on their own and keeps
+    the entries that pass validation — a reply truncated or punctuated
+    mid-array still names what it managed to say before it broke.
+    """
+    decoder = json.JSONDecoder()
+    callouts: list[VisionCallout] = []
+    start = payload.find("{")
+    while start >= 0:
+        try:
+            value, _end = decoder.raw_decode(payload, start)
+        except json.JSONDecodeError:
+            start = payload.find("{", start + 1)
+            continue
+        if isinstance(value, dict):
+            callout = _callout_from(value)
+            if callout is not None:
+                callouts.append(callout)
+        start = payload.find("{", start + 1)
+    return tuple(callouts)
+
+
 def _callout_from(raw: object) -> VisionCallout | None:
     """Validate one entry; malformed entries are skipped (and only skipped)."""
     if not isinstance(raw, dict):
@@ -192,16 +219,34 @@ class AnthropicVisionClient:
                 "drawings without a text layer"
             )
         client = anthropic.Anthropic(api_key=key)
-        # anthropic's content-block TypedDict union rejects hand-built dicts;
-        # the boundary is contained here and per-entry callout validation
-        # happens after the reply is parsed.
-        response = client.messages.create(
-            model=self._model,
-            max_tokens=_MAX_TOKENS,
-            messages=[{"role": "user", "content": _message_content(document)}],  # type: ignore[misc,list-item]
-        )
-        text = "".join(block.text for block in response.content if block.type == "text")
-        return parse_callouts(text)
+        first = _request_text(client, self._model, document)
+        try:
+            return parse_callouts(first)
+        except VisionError:
+            pass  # retried below — one malformed reply must not cost the pass
+        retry = _request_text(client, self._model, document)
+        try:
+            return parse_callouts(retry)
+        except VisionError:
+            # Both replies malformed: keep the fragments that still parse,
+            # deduplicated across the two attempts, before giving up.
+            salvaged = (*salvage_callouts(retry), *salvage_callouts(first))
+            if not salvaged:
+                raise
+            return tuple(dict.fromkeys(salvaged))
+
+
+def _request_text(client: anthropic.Anthropic, model: str, document: DesignDocument) -> str:
+    """One messages-API round trip; the model's text reply as a string."""
+    # anthropic's content-block TypedDict union rejects hand-built dicts;
+    # the boundary is contained here and per-entry callout validation
+    # happens after the reply is parsed.
+    response = client.messages.create(
+        model=model,
+        max_tokens=_MAX_TOKENS,
+        messages=[{"role": "user", "content": _message_content(document)}],  # type: ignore[misc,list-item]
+    )
+    return "".join(block.text for block in response.content if block.type == "text")
 
 
 def _message_content(document: DesignDocument) -> list[dict[str, object]]:
