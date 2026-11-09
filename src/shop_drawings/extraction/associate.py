@@ -32,6 +32,7 @@ from .models import (
     TitleKV,
     Unassociated,
     UnassociatedKind,
+    VariantDimension,
 )
 from .parsing import apply_block_overrides, looks_like_data, parse_block
 
@@ -215,6 +216,20 @@ def _bare_number_unassociated(bare: BareNumber) -> Unassociated:
     )
 
 
+def _variant_unassociated(variant: VariantDimension) -> Unassociated:
+    """A line stating alternatives routes to a question — never a pick."""
+    stated = " or ".join(f"{v:g}" for v in variant.values)
+    return Unassociated(
+        kind=UnassociatedKind.VARIANT_DIMENSION,
+        detail=(
+            f"dimension callout {variant.block.text!r} offers the alternatives "
+            f"({stated}); variant sizes are never auto-selected"
+        ),
+        block=variant.block,
+        best_confidence=variant.confidence,
+    )
+
+
 def _association_for(
     dimension: ParsedDimension, callouts: list[_CalloutBuilder]
 ) -> tuple[float, str | None]:
@@ -265,6 +280,11 @@ def assemble(document: DesignDocument) -> Assembly:
             label = parsed.part_label
             builders.append(_CalloutBuilder(label.label, label.quantity, block))
             continue
+        if parsed.variant is not None:
+            # Checked before column adoption: a variant in a part's own column
+            # is still only a question — there is no value here to adopt.
+            unassociated.append(_variant_unassociated(parsed.variant))
+            continue
         current = builders[-1] if builders else None
         if current is not None and _belongs_to_callout(block, current.label_block):
             current.adopt(parsed)
@@ -302,6 +322,8 @@ def assemble(document: DesignDocument) -> Assembly:
             continue
         if parsed.is_empty or parsed.title_kv or parsed.constraints or parsed.part_label:
             continue
+        if parsed.variant is not None:
+            continue  # handled in pass 1 as a variant question
         if parsed.material is not None or parsed.sizes is not None or parsed.feature is not None:
             continue  # handled in pass 1 as orphaned callout lines
         for dimension in parsed.dimensions:

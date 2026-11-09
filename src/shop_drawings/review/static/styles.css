@@ -323,3 +323,15 @@ input:focus { outline: 2px solid var(--blue); outline-offset: 0; border-color: v
 }
 
 .hidden { display: none; }
+
+/* Vision pass panel */
+.vision-status {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  background: var(--paper);
+  margin-bottom: 12px;
+}
+.status-chip.outcome-upgraded { background: var(--green-bg); color: var(--green); }
+.status-chip.outcome-proposed { background: var(--paper); color: var(--muted); }
+.status-chip.outcome-question { background: var(--red-bg); color: var(--red); }

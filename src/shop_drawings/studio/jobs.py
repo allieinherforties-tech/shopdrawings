@@ -106,6 +106,10 @@ class JobPaths:
         return self.root / "spec.json"
 
     @property
+    def vision(self) -> Path:
+        return self.root / "vision.json"
+
+    @property
     def error(self) -> Path:
         return self.root / "error.json"
 
@@ -129,6 +133,31 @@ class JobPaths:
 def write_spec(paths: JobPaths, spec_json: str) -> None:
     """Persist the extracted spec, marking the job review-ready."""
     paths.spec.write_text(spec_json, encoding="utf-8")
+
+
+def write_vision(paths: JobPaths, report: dict[str, object]) -> None:
+    """Persist the vision pass record the review UI renders.
+
+    Written for every job — ``enabled: false`` is information too: the
+    reviewer sees that the text-only path ran, and why.
+    """
+    paths.vision.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+
+def read_vision(paths: JobPaths) -> dict[str, object] | None:
+    """The job's vision record, or ``None`` when absent/unreadable.
+
+    An unreadable record is logged and reported as absent — the review UI
+    hides the vision panel rather than showing a broken job.
+    """
+    if not paths.vision.exists():
+        return None
+    try:
+        raw = json.loads(paths.vision.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("unreadable vision record at %s: %s", paths.vision, exc)
+        return None
+    return raw if isinstance(raw, dict) else None
 
 
 def write_pages(paths: JobPaths, page_images: list[tuple[int, str, bytes]]) -> None:

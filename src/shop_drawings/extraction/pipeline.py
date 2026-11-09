@@ -22,8 +22,10 @@ attachment earns its place later.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import Literal
 
 from shop_drawings.schema import FurnitureSpec
 
@@ -38,6 +40,57 @@ from .models import DesignDocument, TextBlock, Unassociated, UnassociatedKind
 from .reconcile import build_spec
 from .vision import VisionCallout, VisionClient
 
+logger = logging.getLogger(__name__)
+
+#: What became of one vision callout — the thought process the review UI shows.
+#: ``upgraded``: the model re-read a line the text layer already had (its
+#: confidence caps that block's findings). ``proposed``: the callout became a
+#: new candidate block at or above the review floor. ``question``: below the
+#: floor, so it never enters the parse — it becomes an unresolved question.
+VisionOutcome = Literal["upgraded", "proposed", "question"]
+
+
+@dataclass(frozen=True)
+class VisionObservation:
+    """One vision callout plus what the pipeline did with it.
+
+    This is the review-facing record — the model's reading never enters the
+    spec unrecorded; every callout shows up here with its disposition.
+    """
+
+    text: str
+    page: int
+    region: tuple[float, float, float, float]
+    role: str | None
+    part_label: str | None
+    confidence: float
+    outcome: VisionOutcome
+
+    @classmethod
+    def of(cls, callout: VisionCallout, outcome: VisionOutcome) -> VisionObservation:
+        return cls(
+            text=callout.text,
+            page=callout.page,
+            region=callout.region,
+            role=callout.role,
+            part_label=callout.part_label,
+            confidence=callout.confidence,
+            outcome=outcome,
+        )
+
+
+@dataclass(frozen=True)
+class VisionRun:
+    """The record of one vision pass, for the review UI.
+
+    ``error`` is set only when the pass degraded to the text-only path —
+    the review UI shows what failed instead of the extraction pretending
+    vision never ran.
+    """
+
+    observations: tuple[VisionObservation, ...] = ()
+    error: str | None = None
+
 
 @dataclass(frozen=True)
 class ExtractionResult:
@@ -47,6 +100,7 @@ class ExtractionResult:
     assembly: Assembly
     document: DesignDocument
     vision_callouts: tuple[VisionCallout, ...]
+    vision: VisionRun | None = None
 
 
 def extract_spec(
@@ -64,9 +118,26 @@ def extract_spec(
     document = ingest_design(path)
     callouts: tuple[VisionCallout, ...] = ()
     rejected: list[Unassociated] = []
+    run: VisionRun | None = None
     if vision_client is not None:
-        callouts = vision_client.extract(document)
-        document, rejected = merge_vision_callouts(document, callouts)
+        try:
+            callouts = vision_client.extract(document)
+        except Exception as exc:
+            # Deliberate degradation, not a swallowed error: an API error,
+            # timeout, or malformed reply must never fail the upload — the
+            # text layer still extracts what it can. Logged with traceback;
+            # the review UI shows the failure instead of pretending vision
+            # never ran.
+            logger.warning(
+                "vision pass degraded to text-only extraction: %s: %s",
+                type(exc).__name__,
+                exc,
+                exc_info=True,
+            )
+            run = VisionRun(error=f"{type(exc).__name__}: {exc}")
+        else:
+            document, rejected, observations = merge_vision_callouts_reported(document, callouts)
+            run = VisionRun(observations=observations)
 
     assembly = assemble(document)
     if rejected:
@@ -81,23 +152,65 @@ def extract_spec(
     if not (assembly.parts or assembly.constraints or assembly.unassociated):
         spec = _mark_unreadable(spec, path.name)
     return ExtractionResult(
-        spec=spec, assembly=assembly, document=document, vision_callouts=callouts
+        spec=spec,
+        assembly=assembly,
+        document=document,
+        vision_callouts=callouts,
+        vision=run,
     )
+
+
+def vision_report(result: ExtractionResult) -> dict[str, object]:
+    """The review UI's JSON record of the vision pass — or its absence.
+
+    Written per job next to the spec so the review gate can show the
+    model's thought process without re-running anything.
+    """
+    run = result.vision
+    if run is None:
+        return {"enabled": False, "error": None, "observations": []}
+    return {
+        "enabled": True,
+        "error": run.error,
+        "observations": [
+            {
+                "text": o.text,
+                "page": o.page,
+                "region": list(o.region),
+                "role": o.role,
+                "part_label": o.part_label,
+                "confidence": o.confidence,
+                "outcome": o.outcome,
+            }
+            for o in run.observations
+        ],
+    }
 
 
 def merge_vision_callouts(
     document: DesignDocument,
     callouts: tuple[VisionCallout, ...],
 ) -> tuple[DesignDocument, list[Unassociated]]:
-    """Fold callouts into the document; return the merged doc and rejections.
+    """Fold callouts into the document; return the merged doc and rejections."""
+    merged, rejected, _ = merge_vision_callouts_reported(document, callouts)
+    return merged, rejected
+
+
+def merge_vision_callouts_reported(
+    document: DesignDocument,
+    callouts: tuple[VisionCallout, ...],
+) -> tuple[DesignDocument, list[Unassociated], tuple[VisionObservation, ...]]:
+    """Fold callouts into the document, reporting each one's disposition.
 
     Text-layer blocks win when both sources read the same line — their
     regions come from the PDF itself — but they inherit the model's
-    confidence cap and role. Unmatched callouts become new blocks.
+    confidence cap and role. Unmatched callouts become new blocks (at or
+    above the review floor) or unresolved questions (below it).
     """
     upgraded: dict[int, TextBlock] = {}
     synthesized: list[TextBlock] = []
     rejected: list[Unassociated] = []
+    observations: list[VisionObservation] = []
 
     for callout in callouts:
         index = _find_text_layer_match(document, callout)
@@ -108,6 +221,7 @@ def merge_vision_callouts(
                 vision_confidence=callout.confidence,
                 role=callout.role,
             )
+            observations.append(VisionObservation.of(callout, "upgraded"))
             continue
         if callout.confidence < REVIEW_CONFIDENCE_FLOOR:
             rejected.append(
@@ -121,8 +235,10 @@ def merge_vision_callouts(
                     block=_block_from(callout),
                 )
             )
+            observations.append(VisionObservation.of(callout, "question"))
             continue
         synthesized.append(_block_from(callout))
+        observations.append(VisionObservation.of(callout, "proposed"))
 
     blocks = list(document.blocks)
     for index, block in upgraded.items():
@@ -133,7 +249,7 @@ def merge_vision_callouts(
         pages=document.pages,
         blocks=tuple(sorted(blocks, key=lambda b: (b.page, b.region.y0, b.region.x0))),
     )
-    return merged, rejected
+    return merged, rejected, tuple(observations)
 
 
 def _block_from(callout: VisionCallout) -> TextBlock:

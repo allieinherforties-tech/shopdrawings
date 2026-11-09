@@ -4,7 +4,7 @@
 
 "use strict";
 
-const state = { spec: null, queue: null, gateErrors: [], specStatus: "", log: [] };
+const state = { spec: null, queue: null, gateErrors: [], specStatus: "", log: [], vision: null };
 
 const $ = (id) => document.getElementById(id);
 
@@ -347,6 +347,64 @@ function renderLog() {
     </li>`).reverse().join("");
 }
 
+/* ---------- vision pass panel ---------- */
+
+const OUTCOME_LABELS = {
+  upgraded: "re-read a text line — its confidence caps that value",
+  proposed: "proposed a value — queued below for your confirmation",
+  question: "flagged unclear — became a blocked question",
+};
+
+async function loadVision() {
+  try {
+    const res = await fetch("api/vision");
+    if (!res.ok) return; // no record (vision off / review-only mode): panel stays hidden
+    state.vision = await res.json();
+    renderVision();
+  } catch (err) {
+    console.warn("vision record unavailable:", err);
+  }
+}
+
+function renderVision() {
+  const v = state.vision;
+  if (!v) return;
+  $("sec-vision").hidden = false;
+
+  const status = $("vision-status");
+  if (v.error) {
+    status.innerHTML = `<strong>Vision pass degraded to text-only extraction:</strong> ${escapeHtml(v.error)}`;
+    status.hidden = false;
+  } else if (!v.enabled) {
+    status.textContent = "Vision assist was off for this job — text-only extraction ran.";
+    status.hidden = false;
+  } else {
+    status.hidden = true;
+  }
+
+  const wrap = $("vision-observations");
+  if (!v.observations.length) {
+    wrap.innerHTML = v.error
+      ? ""
+      : `<p class="section-hint">The vision pass reported no readings.</p>`;
+    return;
+  }
+  wrap.innerHTML = v.observations.map((o) => `
+    <div class="value-row vision-row">
+      ${cropHtml({ page: o.page, region: o.region, text: o.text })}
+      <div class="ident">
+        <div class="label">“${escapeHtml(o.text)}”</div>
+        <div class="src">page ${o.page}${o.role ? ` · role ${escapeHtml(o.role)}` : " · role unclassified"}${o.part_label ? ` · attributed to ${escapeHtml(o.part_label)}` : ""}</div>
+        <div class="src">${escapeHtml(OUTCOME_LABELS[o.outcome] || o.outcome)}</div>
+      </div>
+      <div class="confidence" title="model confidence ${o.confidence}">
+        <span style="width:${Math.round(o.confidence * 100)}%"></span>
+      </div>
+      <div class="meta">${Math.round(o.confidence * 100)}%</div>
+      <span class="status-chip outcome-${escapeHtml(o.outcome)}">${escapeHtml(o.outcome)}</span>
+    </div>`).join("");
+}
+
 /* ---------- crop modal ---------- */
 
 function openCrop(btn) {
@@ -379,3 +437,4 @@ $("approve-btn").addEventListener("click", () => {
 });
 
 refresh().then(render);
+loadVision();

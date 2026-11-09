@@ -13,6 +13,36 @@ def block(text: str, **kwargs: object) -> TextBlock:
     return TextBlock(text=text, **defaults)  # type: ignore[arg-type]
 
 
+def test_variant_alternatives_parse_as_one_finding() -> None:
+    parsed = parse_block(block('H 22" OR 24"'))
+    assert parsed.variant is not None
+    assert parsed.variant.values == (22.0, 24.0)
+
+
+def test_variant_alternatives_parse_in_lowercase() -> None:
+    parsed = parse_block(block('H 22" or 24"'))
+    assert parsed.variant is not None
+    assert parsed.variant.values == (22.0, 24.0)
+
+
+def test_variant_alternatives_without_inch_marks() -> None:
+    parsed = parse_block(block("DEPTH 380 OR 400"))
+    assert parsed.variant is not None
+    assert parsed.variant.values == (380.0, 400.0)
+
+
+def test_variant_with_a_trailing_unit() -> None:
+    parsed = parse_block(block("22 OR 24 MM"))
+    assert parsed.variant is not None
+    assert parsed.variant.values == (22.0, 24.0)
+
+
+def test_normal_callouts_are_not_variants() -> None:
+    for text in ("OVERALL 800 x 720 x 380", "SIDE PANEL - QTY 2", "702 x 380 x 18", "800"):
+        parsed = parse_block(block(text))
+        assert parsed.variant is None, text
+
+
 def test_part_label_with_quantity() -> None:
     parsed = parse_block(block("SIDE PANEL - QTY 2"))
     assert parsed.part_label is not None

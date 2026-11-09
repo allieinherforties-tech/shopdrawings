@@ -217,3 +217,30 @@ def test_corrections_locked_after_approval(spec_file: Path) -> None:
         },
     )
     assert locked.status_code == 409
+
+
+def test_review_only_mode_has_no_vision_record(spec_file: Path) -> None:
+    client = TestClient(create_app(spec_file))
+    assert client.get("/api/vision").status_code == 404
+
+
+def test_vision_record_serves_when_a_path_is_given(spec_file: Path, tmp_path: Path) -> None:
+    vision = tmp_path / "vision.json"
+    vision.write_text(
+        '{"enabled": true, "error": null, "observations": [{"text": "DEPTH 380",'
+        ' "page": 1, "region": [0, 0, 1, 0.2], "role": "depth",'
+        ' "part_label": null, "confidence": 0.7, "outcome": "upgraded"}]}',
+        encoding="utf-8",
+    )
+    client = TestClient(create_app(spec_file, vision_path=vision))
+    response = client.get("/api/vision")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["observations"][0]["outcome"] == "upgraded"
+
+
+def test_unreadable_vision_record_is_reported_absent(spec_file: Path, tmp_path: Path) -> None:
+    vision = tmp_path / "vision.json"
+    vision.write_text("{not json", encoding="utf-8")
+    client = TestClient(create_app(spec_file, vision_path=vision))
+    assert client.get("/api/vision").status_code == 404

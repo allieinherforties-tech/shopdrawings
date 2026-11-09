@@ -8,6 +8,7 @@ from shop_drawings.extraction import (
     VisionCallout,
     build_prompt,
     parse_callouts,
+    vision_client_from_env,
 )
 from shop_drawings.extraction.vision import (
     AnthropicVisionClient,
@@ -119,6 +120,19 @@ def test_client_without_a_key_is_a_configuration_error(
     )
     with pytest.raises(VisionNotConfiguredError):
         client.extract(document)
+
+
+def test_env_factory_is_none_without_a_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    assert vision_client_from_env() is None
+
+
+def test_env_factory_wires_the_anthropic_client_with_a_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-not-real")
+    client = vision_client_from_env()
+    assert isinstance(client, AnthropicVisionClient)
 
 
 def test_callout_rejects_bad_confidence() -> None:

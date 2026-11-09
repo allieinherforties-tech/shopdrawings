@@ -64,6 +64,8 @@ def _question(unassociated: Unassociated) -> str:
     )
     if unassociated.kind is UnassociatedKind.BARE_NUMBER:
         return f"Unassigned value {unassociated.detail} — at {where}. What does it dimension?"
+    if unassociated.kind is UnassociatedKind.VARIANT_DIMENSION:
+        return f"{unassociated.detail} — at {where}. Which value applies?"
     return f"{unassociated.detail} — at {where}. Please resolve."
 
 

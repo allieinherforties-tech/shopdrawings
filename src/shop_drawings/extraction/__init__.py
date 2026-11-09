@@ -26,18 +26,30 @@ from .models import (
     UnassociatedKind,
 )
 from .parsing import looks_like_data, parse_block
-from .pipeline import ExtractionResult, extract_spec, merge_vision_callouts
+from .pipeline import (
+    ExtractionResult,
+    VisionObservation,
+    VisionOutcome,
+    VisionRun,
+    extract_spec,
+    merge_vision_callouts,
+    merge_vision_callouts_reported,
+    vision_report,
+)
 from .reconcile import build_spec
 from .vision import (
+    VISION_MODEL,
     AnthropicVisionClient,
     VisionCallout,
     VisionClient,
     build_prompt,
     parse_callouts,
+    vision_client_from_env,
 )
 
 __all__ = [
     "REVIEW_CONFIDENCE_FLOOR",
+    "VISION_MODEL",
     "AnthropicVisionClient",
     "Assembly",
     "AttachedDimension",
@@ -51,6 +63,9 @@ __all__ = [
     "UnassociatedKind",
     "VisionCallout",
     "VisionClient",
+    "VisionObservation",
+    "VisionOutcome",
+    "VisionRun",
     "assemble",
     "build_prompt",
     "build_spec",
@@ -58,6 +73,9 @@ __all__ = [
     "ingest_design",
     "looks_like_data",
     "merge_vision_callouts",
+    "merge_vision_callouts_reported",
     "parse_block",
     "parse_callouts",
+    "vision_client_from_env",
+    "vision_report",
 ]

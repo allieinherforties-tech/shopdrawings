@@ -22,6 +22,7 @@ class UnassociatedKind(StrEnum):
     BARE_NUMBER = "bare_number"
     UNPARSEABLE_ANNOTATION = "unparseable_annotation"
     AMBIGUOUS_ASSOCIATION = "ambiguous_association"
+    VARIANT_DIMENSION = "variant_dimension"
 
 
 #: Roles a vision callout may carry. Dimension roles match schema
@@ -196,6 +197,20 @@ class UnknownAnnotation:
 
 
 @dataclass(frozen=True)
+class VariantDimension:
+    """A callout offering alternatives — ``H 22" OR 24"`` — never a value.
+
+    Product sheets state variant sizes this way; the pipeline cannot know
+    which applies, so the whole callout routes to a review question. Values
+    stay in the stated units — the question quotes the line verbatim.
+    """
+
+    values: tuple[float, ...]
+    block: TextBlock
+    confidence: float
+
+
+@dataclass(frozen=True)
 class LineParse:
     """The full parse of one text block. Exactly one line in, all findings out.
 
@@ -214,6 +229,7 @@ class LineParse:
     feature: ParsedFeature | None = None
     edge_banding: EdgeBanding | None = None
     bare_number: BareNumber | None = None
+    variant: VariantDimension | None = None
 
     @property
     def is_empty(self) -> bool:
@@ -228,6 +244,7 @@ class LineParse:
             and self.feature is None
             and self.edge_banding is None
             and self.bare_number is None
+            and self.variant is None
         )
 
 
