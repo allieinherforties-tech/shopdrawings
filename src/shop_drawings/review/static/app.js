@@ -33,7 +33,7 @@ function cropHtml(source) {
     `width:${(x1 - x0) * 100}%;height:${(y1 - y0) * 100}%"></span>`;
   return `<button class="crop" title="Page ${source.page}: “${escapeHtml(source.text)}” — click to enlarge"` +
     ` data-page="${source.page}" data-x0="${x0}" data-y0="${y0}" data-x1="${x1}" data-y1="${y1}">` +
-    `<img src="/api/page/${source.page}/image" alt="source page ${source.page}">${box}</button>`;
+    `<img src="api/page/${source.page}/image" alt="source page ${source.page}">${box}</button>`;
 }
 
 function escapeHtml(s) {
@@ -59,7 +59,7 @@ async function post(url, body) {
 }
 
 async function refresh() {
-  const res = await fetch("/api/review");
+  const res = await fetch("api/review");
   const json = await res.json();
   Object.assign(state, json);
 }
@@ -74,18 +74,18 @@ async function act(promise) {
 }
 
 const confirmValue = (address) =>
-  act(post("/api/values", { address, status: "approved" }));
+  act(post("api/values", { address, status: "approved" }));
 
 const correctValue = (address, value) =>
-  act(post("/api/values", { address, value, status: "approved" }));
+  act(post("api/values", { address, value, status: "approved" }));
 
 const resolveQuestion = (index, answer) =>
-  act(post("/api/questions/resolve", { index, answer }));
+  act(post("api/questions/resolve", { index, answer }));
 
 const confirmBatch = (addresses) =>
-  act(post("/api/values/confirm-batch", { addresses }));
+  act(post("api/values/confirm-batch", { addresses }));
 
-const approve = () => act(post("/api/approve", {}));
+const approve = () => act(post("api/approve", {}));
 
 /* ---------- render ---------- */
 
@@ -257,11 +257,11 @@ function renderValues(approved) {
 
   wrap.querySelectorAll("[data-part]").forEach((btn) => {
     btn.addEventListener("click", () =>
-      act(post("/api/parts", { part_id: btn.dataset.part, status: "approved" })));
+      act(post("api/parts", { part_id: btn.dataset.part, status: "approved" })));
   });
   wrap.querySelectorAll("[data-constraint]").forEach((btn) => {
     btn.addEventListener("click", () =>
-      act(post("/api/constraints", { index: Number(btn.dataset.constraint), status: "approved" })));
+      act(post("api/constraints", { index: Number(btn.dataset.constraint), status: "approved" })));
   });
   for (const values of byPart.values()) bindValueRows(wrap, values);
 }
@@ -354,7 +354,7 @@ function openCrop(btn) {
   const body = $("crop-modal-body");
   const box = `<span class="box" style="left:${d.x0 * 100}%;top:${d.y0 * 100}%;` +
     `width:${(d.x1 - d.x0) * 100}%;height:${(d.y1 - d.y0) * 100}%"></span>`;
-  body.innerHTML = `<img src="/api/page/${d.page}/image" alt="source page ${d.page}">${box}`;
+  body.innerHTML = `<img src="api/page/${d.page}/image" alt="source page ${d.page}">${box}`;
   $("crop-modal").hidden = false;
 }
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeAlias
 
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
@@ -33,6 +33,13 @@ from shop_drawings.schema import FurnitureSpec, ReviewStatus
 STATIC_DIR = Path(__file__).parent / "static"
 
 _PAGE_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
+
+#: Where the review spec comes from. A plain ``Path`` is the single-spec
+#: mode (``python -m shop_drawings.review``); a resolver reads the job id
+#: the app was mounted under and returns that job's spec — how the studio
+#: front door serves many jobs from one mounted review instance.
+SpecPathSource: TypeAlias = Path | Callable[[Request], Path]
+ImageDirSource: TypeAlias = Path | Callable[[Request], Path] | None
 
 
 class CorrectionRequest(BaseModel):
@@ -103,12 +110,32 @@ def _find_page_image(source_images_dir: Path | None, page: int) -> Path | None:
 
 
 def create_app(
-    spec_path: Path,
+    spec_path: SpecPathSource,
     *,
-    source_images_dir: Path | None = None,
+    source_images_dir: ImageDirSource = None,
 ) -> FastAPI:
-    """Build the review app against one spec file."""
-    store = ReviewStore(spec_path)
+    """Build the review app against one spec file — or, given a resolver,
+    against whatever spec the request's job names.
+
+    The store is constructed per request from the resolved path, so the
+    gate (``ReviewStore`` and the schema behind it) behaves identically in
+    both modes: same file-on-disk reads, same validation, same log.
+    """
+
+    def _spec_for(request: Request) -> Path:
+        if isinstance(spec_path, Path):
+            return spec_path
+        return spec_path(request)
+
+    def _store_for(request: Request) -> ReviewStore:
+        return ReviewStore(_spec_for(request))
+
+    def _images_for(request: Request) -> Path | None:
+        if source_images_dir is None:
+            return None
+        if isinstance(source_images_dir, Path):
+            return source_images_dir
+        return source_images_dir(request)
 
     app = FastAPI(title="Shop Drawings — Review Gate", docs_url=None, redoc_url=None)
 
@@ -118,20 +145,7 @@ def create_app(
         # shows these errors verbatim instead of a generic failure.
         return JSONResponse(status_code=409, content={"gate_errors": exc.errors})
 
-    def _run(action: Callable[[], FurnitureSpec]) -> ReviewPayload:
-        """Apply a reviewer action and return the refreshed review payload."""
-        try:
-            action()
-        except KeyError as exc:
-            raise HTTPException(status_code=404, detail=f"unknown part: {exc}") from exc
-        except IndexError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
-        return get_review()
-
-    @app.get("/api/review", response_model=None)
-    def get_review() -> ReviewPayload:
+    def review_payload(store: ReviewStore) -> ReviewPayload:
         spec = store.reread()
         return ReviewPayload(
             spec=spec_payload(spec),
@@ -141,55 +155,75 @@ def create_app(
             log=store.read_log(),
         )
 
+    def _run(request: Request, action: Callable[[ReviewStore], FurnitureSpec]) -> ReviewPayload:
+        """Apply a reviewer action and return the refreshed review payload."""
+        try:
+            action(_store_for(request))
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=f"unknown part: {exc}") from exc
+        except IndexError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return review_payload(_store_for(request))
+
+    @app.get("/api/review", response_model=None)
+    def get_review(request: Request) -> ReviewPayload:
+        return review_payload(_store_for(request))
+
     @app.post("/api/values", response_model=None)
-    def correct_value(request: CorrectionRequest) -> ReviewPayload:
-        if request.value is None and request.status is None:
+    def correct_value(request: Request, correction: CorrectionRequest) -> ReviewPayload:
+        if correction.value is None and correction.status is None:
             raise HTTPException(status_code=422, detail="a value or a status is required")
 
-        def apply() -> FurnitureSpec:
-            return store.correct_value(request.address, value=request.value, status=request.status)
+        def apply(store: ReviewStore) -> FurnitureSpec:
+            return store.correct_value(
+                correction.address, value=correction.value, status=correction.status
+            )
 
-        return _run(apply)
+        return _run(request, apply)
 
     @app.post("/api/values/confirm-batch", response_model=None)
-    def confirm_batch(request: BatchConfirmRequest) -> ReviewPayload:
-        def apply() -> FurnitureSpec:
-            for address in request.addresses:
+    def confirm_batch(request: Request, body: BatchConfirmRequest) -> ReviewPayload:
+        def apply(store: ReviewStore) -> FurnitureSpec:
+            for address in body.addresses:
                 store.correct_value(address, status=ReviewStatus.APPROVED)
-            for part_id in request.part_ids:
+            for part_id in body.part_ids:
                 store.set_part_status(part_id, ReviewStatus.APPROVED)
-            for index in request.constraint_indexes:
+            for index in body.constraint_indexes:
                 store.set_constraint_status(index, ReviewStatus.APPROVED)
             return store.spec
 
-        return _run(apply)
+        return _run(request, apply)
 
     @app.post("/api/parts", response_model=None)
-    def set_part_status(request: PartStatusRequest) -> ReviewPayload:
-        return _run(lambda: store.set_part_status(request.part_id, request.status))
+    def set_part_status(request: Request, body: PartStatusRequest) -> ReviewPayload:
+        return _run(request, lambda store: store.set_part_status(body.part_id, body.status))
 
     @app.post("/api/constraints", response_model=None)
-    def set_constraint_status(request: ConstraintStatusRequest) -> ReviewPayload:
-        return _run(lambda: store.set_constraint_status(request.index, request.status))
+    def set_constraint_status(request: Request, body: ConstraintStatusRequest) -> ReviewPayload:
+        return _run(request, lambda store: store.set_constraint_status(body.index, body.status))
 
     @app.post("/api/questions/resolve", response_model=None)
-    def resolve_question(request: ResolveQuestionRequest) -> ReviewPayload:
-        return _run(lambda: store.resolve_question(request.index, request.answer))
+    def resolve_question(request: Request, body: ResolveQuestionRequest) -> ReviewPayload:
+        return _run(request, lambda store: store.resolve_question(body.index, body.answer))
 
     @app.post("/api/approve", response_model=None)
-    def approve() -> ReviewPayload:
-        return _run(store.approve)
+    def approve(request: Request) -> ReviewPayload:
+        return _run(request, lambda store: store.approve())
 
     @app.get("/api/log", response_model=None)
-    def get_log() -> list[LogEntry]:
-        return store.read_log()
+    def get_log(request: Request) -> list[LogEntry]:
+        return _store_for(request).read_log()
 
     @app.get("/api/page/{page}/image")
-    def page_image(page: int) -> Response:
-        image = _find_page_image(source_images_dir, page)
+    def page_image(request: Request, page: int) -> Response:
+        image = _find_page_image(_images_for(request), page)
         if image is not None:
             return FileResponse(image)
-        return Response(content=page_svg(store.spec, page), media_type="image/svg+xml")
+        return Response(
+            content=page_svg(_store_for(request).spec, page), media_type="image/svg+xml"
+        )
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
