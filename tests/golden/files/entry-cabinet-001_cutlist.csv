@@ -1,0 +1,5 @@
+"part_id","type","quantity","material","length","width","thickness","edge_banding","features","source_page"
+"side_panel","panel","2","birch plywood","720","380","380","","escalated — see escalation/side_panel/package.json","1"
+"shelf","panel","3","birch plywood","764","340","18","","","1"
+"top","panel","1","birch plywood","800","380","18","front","","1"
+"back_panel","panel","1","birch plywood","764","720","12","","","1"

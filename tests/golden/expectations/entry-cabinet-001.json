@@ -1,0 +1,75 @@
+{
+  "fixture": "entry-cabinet-001",
+  "source": "tests/fixtures/cabinet_pdf.py — the drawn lines are the ground truth",
+  "project": { "name": "entry-cabinet-001", "units": "mm" },
+  "parts": [
+    {
+      "id": "side_panel",
+      "type": "panel",
+      "quantity": 2,
+      "material": "birch plywood",
+      "edge_banding": [],
+      "dimensions": {
+        "length": 720,
+        "width": 380,
+        "thickness": 18,
+        "depth": 380,
+        "setback": 37
+      },
+      "features": [
+        {
+          "type": "shelf_pin_holes",
+          "dimensions": {
+            "hole_diameter": 5,
+            "spacing": 32,
+            "setback": 37
+          }
+        }
+      ]
+    },
+    {
+      "id": "shelf",
+      "type": "panel",
+      "quantity": 3,
+      "material": "birch plywood",
+      "edge_banding": [],
+      "dimensions": {
+        "length": 764,
+        "width": 340,
+        "thickness": 18
+      },
+      "features": []
+    },
+    {
+      "id": "top",
+      "type": "panel",
+      "quantity": 1,
+      "material": "birch plywood",
+      "edge_banding": ["front"],
+      "dimensions": {
+        "length": 800,
+        "width": 380,
+        "thickness": 18
+      },
+      "features": []
+    },
+    {
+      "id": "back_panel",
+      "type": "panel",
+      "quantity": 1,
+      "material": "birch plywood",
+      "edge_banding": [],
+      "dimensions": {
+        "length": 764,
+        "width": 720,
+        "thickness": 12
+      },
+      "features": []
+    }
+  ],
+  "constraints": {
+    "overall_width": 800,
+    "overall_height": 770
+  },
+  "unresolved_questions": 6
+}

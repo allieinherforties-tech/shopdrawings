@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "entry-cabinet-001",
+    "units": "mm",
+    "source": "redline-v3.pdf"
+  },
+  "parts": [
+    {
+      "id": "side_left",
+      "type": "panel",
+      "quantity": 1,
+      "material": "18mm birch plywood",
+      "dimensions": {
+        "length": {
+          "value": 720,
+          "source": { "page": 1, "region": [0.12, 0.32, 0.41, 0.78], "text": "720" },
+          "confidence": 0.97
+        },
+        "width": {
+          "value": 380,
+          "source": { "page": 1, "region": [0.3, 0.55, 0.52, 0.61], "text": "380" },
+          "confidence": 0.95
+        },
+        "thickness": {
+          "value": 18,
+          "source": { "page": 1, "region": [0.05, 0.1, 0.12, 0.14], "text": "18mm birch plywood" },
+          "confidence": 0.9
+        }
+      },
+      "edge_banding": ["front"],
+      "features": [
+        {
+          "type": "shelf_pin_holes",
+          "dimensions": {
+            "hole_diameter": {
+              "value": 5,
+              "source": { "page": 1, "region": [0.6, 0.2, 0.68, 0.26], "text": "5" },
+              "confidence": 0.93
+            },
+            "spacing": {
+              "value": 32,
+              "source": { "page": 1, "region": [0.6, 0.26, 0.68, 0.32], "text": "32mm system" },
+              "confidence": 0.88
+            },
+            "setback": {
+              "value": 37,
+              "reference": "front_edge",
+              "source": { "page": 1, "region": [0.6, 0.32, 0.68, 0.38], "text": "37" },
+              "confidence": 0.78
+            }
+          }
+        }
+      ],
+      "source_references": [
+        { "page": 1, "region": [0.05, 0.05, 0.95, 0.95], "text": "side panel elevation" }
+      ]
+    },
+    {
+      "id": "bottom_panel",
+      "type": "panel",
+      "quantity": 1,
+      "material": "18mm birch plywood",
+      "dimensions": {
+        "length": {
+          "value": 764,
+          "source": { "page": 1, "region": [0.08, 0.82, 0.3, 0.88], "text": "764" },
+          "confidence": 0.94
+        },
+        "width": {
+          "value": 380,
+          "source": { "page": 1, "region": [0.31, 0.82, 0.5, 0.88], "text": "380" },
+          "confidence": 0.91
+        },
+        "thickness": {
+          "value": 18,
+          "source": { "page": 1, "region": [0.51, 0.82, 0.56, 0.88], "text": "18" },
+          "confidence": 0.92
+        }
+      },
+      "features": []
+    },
+    {
+      "id": "door_left",
+      "type": "panel",
+      "quantity": 1,
+      "material": "18mm birch plywood",
+      "dimensions": {
+        "height": {
+          "value": 716,
+          "source": { "page": 1, "region": [0.72, 0.2, 0.78, 0.6], "text": "716" },
+          "confidence": 0.96
+        },
+        "width": {
+          "value": 396,
+          "source": { "page": 1, "region": [0.72, 0.62, 0.78, 0.7], "text": "796" },
+          "confidence": 0.62
+        },
+        "thickness": {
+          "value": 18,
+          "source": { "page": 1, "region": [0.72, 0.71, 0.78, 0.76], "text": "18" },
+          "confidence": 0.9
+        }
+      },
+      "features": []
+    }
+  ],
+  "constraints": [
+    {
+      "type": "overall_width",
+      "value": 800,
+      "tolerance": 1,
+      "source": { "page": 1, "region": [0.05, 0.9, 0.2, 0.95], "text": "800" },
+      "confidence": 0.99
+    }
+  ],
+  "unresolved_questions": [
+    "Confirm whether the 380mm depth includes the door front."
+  ]
+}

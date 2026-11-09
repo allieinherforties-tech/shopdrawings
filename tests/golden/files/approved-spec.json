@@ -1,0 +1,478 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "entry-cabinet-001",
+    "units": "mm",
+    "source": "entry-cabinet-001.pdf"
+  },
+  "parts": [
+    {
+      "id": "side_panel",
+      "type": "panel",
+      "quantity": 2,
+      "material": "birch plywood",
+      "dimensions": {
+        "length": {
+          "value": 720.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.4476521749046015,
+              0.12506856069164612,
+              0.4797228805955364
+            ],
+            "text": "720 X 380"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "width": {
+          "value": 380.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.4476521749046015,
+              0.12506856069164612,
+              0.4797228805955364
+            ],
+            "text": "720 X 380"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 18.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.0,
+              0.4286473122729364,
+              0.23968859796850367,
+              0.4607180179638713
+            ],
+            "text": "18MM BIRCH PLYWOOD"
+          },
+          "confidence": 0.9,
+          "status": "approved",
+          "reference": null
+        },
+        "depth": {
+          "value": 380.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.016788445014115316,
+              0.4666570375362666,
+              0.13777864199013734,
+              0.4987277432272015
+            ],
+            "text": "DEPTH 380"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "setback": {
+          "value": 37.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.0,
+              0.48566190016793176,
+              0.4544376931353636,
+              0.5177326058588665
+            ],
+            "text": "SHELF PIN HOLES Ø5 @ 32, 37 FROM FRONT EDGE"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": "front_edge"
+        }
+      },
+      "edge_banding": [],
+      "features": [
+        {
+          "type": "shelf_pin_holes",
+          "dimensions": {
+            "hole_diameter": {
+              "value": 5.0,
+              "tolerance": 0.0,
+              "source": {
+                "page": 1,
+                "region": [
+                  0.0,
+                  0.48566190016793176,
+                  0.4544376931353636,
+                  0.5177326058588665
+                ],
+                "text": "SHELF PIN HOLES Ø5 @ 32, 37 FROM FRONT EDGE"
+              },
+              "confidence": 0.9,
+              "status": "approved",
+              "reference": null
+            },
+            "spacing": {
+              "value": 32.0,
+              "tolerance": 0.0,
+              "source": {
+                "page": 1,
+                "region": [
+                  0.0,
+                  0.48566190016793176,
+                  0.4544376931353636,
+                  0.5177326058588665
+                ],
+                "text": "SHELF PIN HOLES Ø5 @ 32, 37 FROM FRONT EDGE"
+              },
+              "confidence": 0.9,
+              "status": "approved",
+              "reference": null
+            },
+            "setback": {
+              "value": 37.0,
+              "tolerance": 0.0,
+              "source": {
+                "page": 1,
+                "region": [
+                  0.0,
+                  0.48566190016793176,
+                  0.4544376931353636,
+                  0.5177326058588665
+                ],
+                "text": "SHELF PIN HOLES Ø5 @ 32, 37 FROM FRONT EDGE"
+              },
+              "confidence": 0.85,
+              "status": "approved",
+              "reference": "front_edge"
+            }
+          },
+          "note": null
+        }
+      ],
+      "source_references": [
+        {
+          "page": 1,
+          "region": [
+            0.0,
+            0.40964244964127133,
+            0.20878148017178597,
+            0.44171315533220623
+          ],
+          "text": "SIDE PANEL - QTY 2"
+        },
+        {
+          "page": 1,
+          "region": [
+            0.0,
+            0.4286473122729364,
+            0.23968859796850367,
+            0.4607180179638713
+          ],
+          "text": "18MM BIRCH PLYWOOD"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "shelf",
+      "type": "panel",
+      "quantity": 3,
+      "material": "birch plywood",
+      "dimensions": {
+        "length": {
+          "value": 764.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.6258227620764619,
+              0.12506856069164612,
+              0.6578934677673967
+            ],
+            "text": "764 X 340"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "width": {
+          "value": 340.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.6258227620764619,
+              0.12506856069164612,
+              0.6578934677673967
+            ],
+            "text": "764 X 340"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 18.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.0,
+              0.6068178994447968,
+              0.23968859796850367,
+              0.6388886051357315
+            ],
+            "text": "18MM BIRCH PLYWOOD"
+          },
+          "confidence": 0.9,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 1,
+          "region": [
+            0.006287004924610529,
+            0.5878130368131315,
+            0.1650823862228498,
+            0.6198837425040666
+          ],
+          "text": "SHELF - QTY 3"
+        },
+        {
+          "page": 1,
+          "region": [
+            0.0,
+            0.6068178994447968,
+            0.23968859796850367,
+            0.6388886051357315
+          ],
+          "text": "18MM BIRCH PLYWOOD"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "top",
+      "type": "panel",
+      "quantity": 1,
+      "material": "birch plywood",
+      "dimensions": {
+        "length": {
+          "value": 800.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.7446031535243687,
+              0.12506856069164612,
+              0.7766738592153035
+            ],
+            "text": "800 X 380"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "width": {
+          "value": 380.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.7446031535243687,
+              0.12506856069164612,
+              0.7766738592153035
+            ],
+            "text": "800 X 380"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 18.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.0,
+              0.7255982908927037,
+              0.23968859796850367,
+              0.7576689965836384
+            ],
+            "text": "18MM BIRCH PLYWOOD"
+          },
+          "confidence": 0.9,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [
+        "front"
+      ],
+      "features": [],
+      "source_references": [
+        {
+          "page": 1,
+          "region": [
+            0.013638642947677158,
+            0.7065934282610385,
+            0.14596812736287654,
+            0.7386641339519733
+          ],
+          "text": "TOP - QTY 1"
+        },
+        {
+          "page": 1,
+          "region": [
+            0.0,
+            0.7255982908927037,
+            0.23968859796850367,
+            0.7576689965836384
+          ],
+          "text": "18MM BIRCH PLYWOOD"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "back_panel",
+      "type": "panel",
+      "quantity": 1,
+      "material": "birch plywood",
+      "dimensions": {
+        "length": {
+          "value": 764.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.8633835449722755,
+              0.12506856069164612,
+              0.8954542506632104
+            ],
+            "text": "764 X 720"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "width": {
+          "value": 720.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.02167693782122732,
+              0.8633835449722755,
+              0.12506856069164612,
+              0.8954542506632104
+            ],
+            "text": "764 X 720"
+          },
+          "confidence": 0.85,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 12.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 1,
+            "region": [
+              0.0,
+              0.8443786823406103,
+              0.23968859796850367,
+              0.8764493880315454
+            ],
+            "text": "12MM BIRCH PLYWOOD"
+          },
+          "confidence": 0.9,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 1,
+          "region": [
+            0.0,
+            0.8253738197089454,
+            0.21515289979177712,
+            0.8574445253998801
+          ],
+          "text": "BACK PANEL - QTY 1"
+        },
+        {
+          "page": 1,
+          "region": [
+            0.0,
+            0.8443786823406103,
+            0.23968859796850367,
+            0.8764493880315454
+          ],
+          "text": "12MM BIRCH PLYWOOD"
+        }
+      ],
+      "status": "approved"
+    }
+  ],
+  "constraints": [
+    {
+      "value": 800.0,
+      "tolerance": 0.0,
+      "source": {
+        "page": 1,
+        "region": [
+          0.45705307878452917,
+          0.36213029306210864,
+          0.6864241851042081,
+          0.39420099875304354
+        ],
+        "text": "OVERALL WIDTH 800"
+      },
+      "confidence": 0.95,
+      "status": "approved",
+      "type": "overall_width"
+    },
+    {
+      "value": 770.0,
+      "tolerance": 0.0,
+      "source": {
+        "page": 1,
+        "region": [
+          0.45389697711395816,
+          0.38588637135168996,
+          0.6946300494476927,
+          0.41795707704262486
+        ],
+        "text": "OVERALL HEIGHT 770"
+      },
+      "confidence": 0.95,
+      "status": "approved",
+      "type": "overall_height"
+    }
+  ],
+  "unresolved_questions": [],
+  "status": "approved"
+}
