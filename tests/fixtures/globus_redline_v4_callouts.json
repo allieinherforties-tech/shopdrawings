@@ -1,0 +1,902 @@
+{
+ "source": "live job 20261109-185416-21ddac20 — Globus redline v4 rerun on the deployed app",
+ "observations": [
+  {
+   "text": "GLOBUS NIGHT STAND — STAND-IN REDLINE v4",
+   "page": 1,
+   "region": [
+    0.05,
+    0.02,
+    0.55,
+    0.04
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.98
+  },
+  {
+   "text": "RFQ 20261109-164445-3593d492 · QTY 2 · 22\" W x 20\" D x 22\" H · whitewashed maple · antique bronze legs · inches · scale 1:7.6",
+   "page": 1,
+   "region": [
+    0.05,
+    0.045,
+    0.9,
+    0.06
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.95
+  },
+  {
+   "text": "REV 4 — 2026-11-09 — lower front changed to one full-width drawer per client; sheet color-coded verified vs. assumption",
+   "page": 1,
+   "region": [
+    0.05,
+    0.06,
+    0.85,
+    0.075
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.93
+  },
+  {
+   "text": "BLACK = VERIFIED (Mark Jupiter product sheet) or CLIENT DECISION 2026-11-09",
+   "page": 1,
+   "region": [
+    0.05,
+    0.078,
+    0.6,
+    0.09
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.95
+  },
+  {
+   "text": "RED = ASSUMPTION — PENDING STUDIO CONFIRMATION (joinery, leg attachment, rail section, pull size, finish build-up, and every dimension derived from an assumption)",
+   "page": 1,
+   "region": [
+    0.05,
+    0.09,
+    0.9,
+    0.105
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.95
+  },
+  {
+   "text": "FRONT ELEVATION (1:7.6)",
+   "page": 1,
+   "region": [
+    0.2,
+    0.12,
+    0.4,
+    0.14
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.97
+  },
+  {
+   "text": "full-width drawer below shelf · cubby above · cubby OPEN THROUGH BACK (CLIENT DECISION 2026-11-09)",
+   "page": 1,
+   "region": [
+    0.13,
+    0.145,
+    0.42,
+    0.17
+   ],
+   "role": "feature",
+   "part_label": null,
+   "confidence": 0.9
+  },
+  {
+   "text": "22\" W",
+   "page": 1,
+   "region": [
+    0.25,
+    0.17,
+    0.3,
+    0.18
+   ],
+   "role": "width",
+   "part_label": null,
+   "confidence": 0.9
+  },
+  {
+   "text": "0.75 TOP",
+   "page": 1,
+   "region": [
+    0.43,
+    0.18,
+    0.45,
+    0.25
+   ],
+   "role": "thickness",
+   "part_label": "TOP",
+   "confidence": 0.85
+  },
+  {
+   "text": "6.75 CUBBY",
+   "page": 1,
+   "region": [
+    0.43,
+    0.2,
+    0.45,
+    0.3
+   ],
+   "role": "height",
+   "part_label": "CUBBY",
+   "confidence": 0.85
+  },
+  {
+   "text": "0.75 SHELF",
+   "page": 1,
+   "region": [
+    0.43,
+    0.28,
+    0.45,
+    0.33
+   ],
+   "role": "thickness",
+   "part_label": "SHELF",
+   "confidence": 0.85
+  },
+  {
+   "text": "8.5 DRWR FRONT",
+   "page": 1,
+   "region": [
+    0.43,
+    0.3,
+    0.45,
+    0.4
+   ],
+   "role": "height",
+   "part_label": "DRAWER FRONT",
+   "confidence": 0.85
+  },
+  {
+   "text": "0.75 BTM",
+   "page": 1,
+   "region": [
+    0.43,
+    0.38,
+    0.45,
+    0.42
+   ],
+   "role": "thickness",
+   "part_label": "BOTTOM",
+   "confidence": 0.85
+  },
+  {
+   "text": "4.5 LEGS+RAIL",
+   "page": 1,
+   "region": [
+    0.43,
+    0.4,
+    0.45,
+    0.46
+   ],
+   "role": "height",
+   "part_label": "LEGS+RAIL",
+   "confidence": 0.8
+  },
+  {
+   "text": "22\" H OVERALL",
+   "page": 1,
+   "region": [
+    0.09,
+    0.18,
+    0.11,
+    0.45
+   ],
+   "role": "overall_height",
+   "part_label": null,
+   "confidence": 0.9
+  },
+  {
+   "text": "PULL 6\" L x 1\" W (ASSUMPTION)",
+   "page": 1,
+   "region": [
+    0.17,
+    0.4,
+    0.32,
+    0.42
+   ],
+   "role": "feature",
+   "part_label": "PULL",
+   "confidence": 0.85
+  },
+  {
+   "text": "21.75 DRWR FRONT W (inset, 0.125 reveals)",
+   "page": 1,
+   "region": [
+    0.14,
+    0.42,
+    0.35,
+    0.44
+   ],
+   "role": "width",
+   "part_label": "DRAWER FRONT",
+   "confidence": 0.85
+  },
+  {
+   "text": "FABRICATED STRAP PULL, CENTERED (CLIENT DECISION; SIZE ASSUMPTION)",
+   "page": 1,
+   "region": [
+    0.14,
+    0.46,
+    0.4,
+    0.48
+   ],
+   "role": "feature",
+   "part_label": "PULL",
+   "confidence": 0.85
+  },
+  {
+   "text": "SIDE ELEVATION (1:7.6)",
+   "page": 1,
+   "region": [
+    0.58,
+    0.12,
+    0.75,
+    0.14
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.97
+  },
+  {
+   "text": "cubby open through back · drawer below (CLIENT DECISION 2026-11-09)",
+   "page": 1,
+   "region": [
+    0.52,
+    0.145,
+    0.82,
+    0.16
+   ],
+   "role": "feature",
+   "part_label": null,
+   "confidence": 0.9
+  },
+  {
+   "text": "20\" D",
+   "page": 1,
+   "region": [
+    0.63,
+    0.17,
+    0.68,
+    0.18
+   ],
+   "role": "depth",
+   "part_label": null,
+   "confidence": 0.9
+  },
+  {
+   "text": "22\" H",
+   "page": 1,
+   "region": [
+    0.49,
+    0.2,
+    0.51,
+    0.4
+   ],
+   "role": "height",
+   "part_label": null,
+   "confidence": 0.9
+  },
+  {
+   "text": "TOP CUBBY OPEN THROUGH BACK (CLIENT DECISION)",
+   "page": 1,
+   "region": [
+    0.75,
+    0.21,
+    0.95,
+    0.23
+   ],
+   "role": "feature",
+   "part_label": "CUBBY",
+   "confidence": 0.9
+  },
+  {
+   "text": "1/4 in. plywood back panel strips (assumption)",
+   "page": 1,
+   "region": [
+    0.75,
+    0.24,
+    0.95,
+    0.26
+   ],
+   "role": "material",
+   "part_label": "BACK PANEL",
+   "confidence": 0.85
+  },
+  {
+   "text": "DRAWER BOX (CLIENT DECISION); DEPTH (ASSUMPTION)",
+   "page": 1,
+   "region": [
+    0.75,
+    0.3,
+    0.98,
+    0.32
+   ],
+   "role": "feature",
+   "part_label": "DRAWER BOX",
+   "confidence": 0.85
+  },
+  {
+   "text": "1. Dimensions in inches. Elevations are stand-in drafting from the published product sheet and client decisions — this is NOT a Mark Jupiter shop drawing and is not studio-approved.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.515,
+    0.95,
+    0.53
+   ],
+   "role": "feature",
+   "part_label": null,
+   "confidence": 0.85
+  },
+  {
+   "text": "2. LOWER FRONT (CLIENT DECISION 2026-11-09): one full-width pull drawer below a fixed shelf — NOT two doors. Door swing/hinge question is moot — no doors.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.53,
+    0.95,
+    0.55
+   ],
+   "role": "feature",
+   "part_label": null,
+   "confidence": 0.85
+  },
+  {
+   "text": "3. BACK (CLIENT DECISION 2026-11-09): top cubby open through the back; bottom zone is a drawer.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.55,
+    0.9,
+    0.565
+   ],
+   "role": "feature",
+   "part_label": null,
+   "confidence": 0.85
+  },
+  {
+   "text": "4. ASSUMPTION — DRAWER FRONT HEIGHT: case stack above legs = 22 − 4.5 = 17.5; 0.75 top + 6.75 cubby + 0.75 shelf + DRAWER + 0.75 bottom = 17.5 ⇒ drawer front = 8.5 H. Case height 17.5, all panel thicknesses 0.75, and cubby 6.75 carry over from v1 as assumptions. Stack sums exactly: 4.5 + 0.75 + 8.5 + 0.75 + 6.75 + 0.75 = 22.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.565,
+    0.95,
+    0.6
+   ],
+   "role": "feature",
+   "part_label": "DRAWER FRONT",
+   "confidence": 0.85
+  },
+  {
+   "text": "5. ASSUMPTION — CASE JOINERY: studio convention unknown per client. Assumed rabbeted-and-dadoed case corners, glued, with interior cleats; shelf and bottom in stopped dados.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.6,
+    0.95,
+    0.63
+   ],
+   "role": "feature",
+   "part_label": null,
+   "confidence": 0.85
+  },
+  {
+   "text": "6. ASSUMPTION — LEG-TO-RAIL: bronze tube frame WELDED at the rail corners, then mechanically fastened to the case underside from inside. Rationale: welded corners are the standard and strongest detail for tube-frame bases; pinned joints add visible fasteners and racking risk at the rail. Rail section assumed 1.0 x 0.5 rectangular bronze tube to match the 1.0 dia legs. WELDED RAIL ESCALATES TO THE HUMAN-MODELING PACKAGE (outside v1 panel-and-case geometry).",
+   "page": 1,
+   "region": [
+    0.05,
+    0.625,
+    0.95,
+    0.67
+   ],
+   "role": "feature",
+   "part_label": "RAIL",
+   "confidence": 0.85
+  },
+  {
+   "text": "7. ASSUMPTION — PULL: client confirmed FABRICATED bronze; size delegated to us. Assumed strap pull 6 L x 1 W x 0.125 thick, centered on the drawer front, mounted 2 below the front top edge. Length is ~3/4 of the 8.5 drawer-front height for front proportion; 1 width gives a full-hand grip.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.67,
+    0.95,
+    0.7
+   ],
+   "role": "feature",
+   "part_label": "PULL",
+   "confidence": 0.85
+  },
+  {
+   "text": "8. ASSUMPTION — FINISH: whitewash stain + low-sheen conversion varnish — durable and preserves the published whitewashed look; sheen is unspecified by the product sheet. Bronze parts sealed antique, no lacquer — lets the antique bronze patina read naturally. Sample approval required before finishing.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.7,
+    0.95,
+    0.73
+   ],
+   "role": "material",
+   "part_label": null,
+   "confidence": 0.85
+  },
+  {
+   "text": "9. BLACK VALUES: overall 22 x 20 x 22, whitewashed maple and antique bronze finish (SOURCE: Globus product sheet); drawer-under-shelf layout, cubby open through back, bottom-is-a-drawer, and fabricated pull (CLIENT DECISION 2026-11-09). All red values are assumptions pending studio confirmation.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.73,
+    0.95,
+    0.76
+   ],
+   "role": "material",
+   "part_label": null,
+   "confidence": 0.85
+  },
+  {
+   "text": "Not a Mark Jupiter shop drawing. Not approved by the studio. Stand-in demo redline; every red item requires studio confirmation before fabrication.",
+   "page": 1,
+   "region": [
+    0.05,
+    0.96,
+    0.9,
+    0.98
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.85
+  },
+  {
+   "text": "GLOBUS NIGHT STAND — PARTS SCHEDULE",
+   "page": 2,
+   "region": [
+    0.05,
+    0.03,
+    0.5,
+    0.05
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.97
+  },
+  {
+   "text": "RFQ 20261109-164445-3593d492 · companion to stand-in redline v4 · inches · tagged dimensions in red are assumption-derived",
+   "page": 2,
+   "region": [
+    0.05,
+    0.05,
+    0.75,
+    0.065
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.93
+  },
+  {
+   "text": "BLACK = part label (per redline color rule) · RED = assumption dimension pending studio confirmation",
+   "page": 2,
+   "region": [
+    0.05,
+    0.07,
+    0.65,
+    0.085
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.93
+  },
+  {
+   "text": "DRAWER FRONT",
+   "page": 2,
+   "region": [
+    0.07,
+    0.14,
+    0.2,
+    0.155
+   ],
+   "role": "part_label",
+   "part_label": "DRAWER FRONT",
+   "confidence": 0.95
+  },
+  {
+   "text": "WIDTH 21.75 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.16,
+    0.22,
+    0.175
+   ],
+   "role": "width",
+   "part_label": "DRAWER FRONT",
+   "confidence": 0.95
+  },
+  {
+   "text": "HEIGHT 8.5 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.175,
+    0.22,
+    0.19
+   ],
+   "role": "height",
+   "part_label": "DRAWER FRONT",
+   "confidence": 0.95
+  },
+  {
+   "text": "THICKNESS 0.75 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.19,
+    0.25,
+    0.205
+   ],
+   "role": "thickness",
+   "part_label": "DRAWER FRONT",
+   "confidence": 0.95
+  },
+  {
+   "text": "CASE TOP",
+   "page": 2,
+   "region": [
+    0.07,
+    0.22,
+    0.18,
+    0.235
+   ],
+   "role": "part_label",
+   "part_label": "CASE TOP",
+   "confidence": 0.95
+  },
+  {
+   "text": "WIDTH 22 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.24,
+    0.2,
+    0.25
+   ],
+   "role": "width",
+   "part_label": "CASE TOP",
+   "confidence": 0.95
+  },
+  {
+   "text": "DEPTH 20 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.25,
+    0.2,
+    0.26
+   ],
+   "role": "depth",
+   "part_label": "CASE TOP",
+   "confidence": 0.95
+  },
+  {
+   "text": "THK 0.75 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.26,
+    0.2,
+    0.275
+   ],
+   "role": "thickness",
+   "part_label": "CASE TOP",
+   "confidence": 0.95
+  },
+  {
+   "text": "CASE BOTTOM",
+   "page": 2,
+   "region": [
+    0.07,
+    0.29,
+    0.2,
+    0.305
+   ],
+   "role": "part_label",
+   "part_label": "CASE BOTTOM",
+   "confidence": 0.95
+  },
+  {
+   "text": "WIDTH 22 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.31,
+    0.2,
+    0.32
+   ],
+   "role": "width",
+   "part_label": "CASE BOTTOM",
+   "confidence": 0.95
+  },
+  {
+   "text": "DEPTH 20 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.32,
+    0.2,
+    0.33
+   ],
+   "role": "depth",
+   "part_label": "CASE BOTTOM",
+   "confidence": 0.95
+  },
+  {
+   "text": "THK 0.75 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.33,
+    0.2,
+    0.345
+   ],
+   "role": "thickness",
+   "part_label": "CASE BOTTOM",
+   "confidence": 0.95
+  },
+  {
+   "text": "CASE SIDES L/R",
+   "page": 2,
+   "region": [
+    0.07,
+    0.36,
+    0.22,
+    0.375
+   ],
+   "role": "part_label",
+   "part_label": "CASE SIDES L/R",
+   "confidence": 0.95
+  },
+  {
+   "text": "HEIGHT 17.5 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.38,
+    0.22,
+    0.39
+   ],
+   "role": "height",
+   "part_label": "CASE SIDES L/R",
+   "confidence": 0.95
+  },
+  {
+   "text": "DEPTH 20 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.39,
+    0.2,
+    0.4
+   ],
+   "role": "depth",
+   "part_label": "CASE SIDES L/R",
+   "confidence": 0.95
+  },
+  {
+   "text": "THK 0.75 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.4,
+    0.2,
+    0.415
+   ],
+   "role": "thickness",
+   "part_label": "CASE SIDES L/R",
+   "confidence": 0.95
+  },
+  {
+   "text": "SHELF",
+   "page": 2,
+   "region": [
+    0.07,
+    0.43,
+    0.15,
+    0.445
+   ],
+   "role": "part_label",
+   "part_label": "SHELF",
+   "confidence": 0.95
+  },
+  {
+   "text": "WIDTH 20.5 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.45,
+    0.22,
+    0.46
+   ],
+   "role": "width",
+   "part_label": "SHELF",
+   "confidence": 0.95
+  },
+  {
+   "text": "DEPTH 20 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.46,
+    0.2,
+    0.47
+   ],
+   "role": "depth",
+   "part_label": "SHELF",
+   "confidence": 0.95
+  },
+  {
+   "text": "THK 0.75 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.47,
+    0.2,
+    0.485
+   ],
+   "role": "thickness",
+   "part_label": "SHELF",
+   "confidence": 0.95
+  },
+  {
+   "text": "BACK PANEL",
+   "page": 2,
+   "region": [
+    0.07,
+    0.5,
+    0.2,
+    0.515
+   ],
+   "role": "part_label",
+   "part_label": "BACK PANEL",
+   "confidence": 0.95
+  },
+  {
+   "text": "THK 0.25 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.52,
+    0.2,
+    0.53
+   ],
+   "role": "thickness",
+   "part_label": "BACK PANEL",
+   "confidence": 0.95
+  },
+  {
+   "text": "LEG - QTY 4",
+   "page": 2,
+   "region": [
+    0.07,
+    0.56,
+    0.2,
+    0.575
+   ],
+   "role": "part_label",
+   "part_label": "LEG",
+   "confidence": 0.95
+  },
+  {
+   "text": "LENGTH 4.5 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.58,
+    0.22,
+    0.59
+   ],
+   "role": "length",
+   "part_label": "LEG",
+   "confidence": 0.95
+  },
+  {
+   "text": "DIA 1.0 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.59,
+    0.2,
+    0.6
+   ],
+   "role": "hole_diameter",
+   "part_label": "LEG",
+   "confidence": 0.85
+  },
+  {
+   "text": "RAIL",
+   "page": 2,
+   "region": [
+    0.07,
+    0.62,
+    0.13,
+    0.635
+   ],
+   "role": "part_label",
+   "part_label": "RAIL",
+   "confidence": 0.95
+  },
+  {
+   "text": "WIDTH 1.0 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.64,
+    0.22,
+    0.65
+   ],
+   "role": "width",
+   "part_label": "RAIL",
+   "confidence": 0.95
+  },
+  {
+   "text": "THK 0.5 IN",
+   "page": 2,
+   "region": [
+    0.1,
+    0.65,
+    0.2,
+    0.665
+   ],
+   "role": "thickness",
+   "part_label": "RAIL",
+   "confidence": 0.95
+  },
+  {
+   "text": "Pull = feature of drawer front (fabricated bronze strap, 6 x 1 x 0.125, centered) - not a separate part.",
+   "page": 2,
+   "region": [
+    0.07,
+    0.69,
+    0.6,
+    0.705
+   ],
+   "role": "feature",
+   "part_label": "PULL",
+   "confidence": 0.9
+  },
+  {
+   "text": "Welded rail detail remains flagged for the human-modeling escalation.",
+   "page": 2,
+   "region": [
+    0.07,
+    0.705,
+    0.5,
+    0.72
+   ],
+   "role": "feature",
+   "part_label": "RAIL",
+   "confidence": 0.9
+  },
+  {
+   "text": "Not a Mark Jupiter shop drawing. Not approved by the studio. Stand-in demo redline; every red item requires studio confirmation before fabrication.",
+   "page": 2,
+   "region": [
+    0.05,
+    0.96,
+    0.6,
+    0.98
+   ],
+   "role": "title",
+   "part_label": null,
+   "confidence": 0.85
+  }
+ ]
+}
