@@ -10,10 +10,12 @@ from shop_drawings.extraction import (
     parse_callouts,
     vision_client_from_env,
 )
+from shop_drawings.extraction import vision as vision_module
 from shop_drawings.extraction.vision import (
     AnthropicVisionClient,
     VisionError,
     VisionNotConfiguredError,
+    salvage_callouts,
 )
 
 
@@ -145,3 +147,86 @@ def test_callout_rejects_bad_confidence() -> None:
             part_label=None,
             confidence=1.5,
         )
+
+
+_VALID_PAYLOAD = (
+    '{"callouts": [{"text": "DEPTH 380", "page": 1, "region": [0.1, 0.2, 0.3, 0.25], '
+    '"role": "depth", "part_label": null, "confidence": 0.82}]}'
+)
+
+#: The live-failure shape: valid entries up front, then the reply cut off
+#: mid-object (job 20261109-174312-6f0705fa, "Expecting ',' delimiter").
+_TRUNCATED_PAYLOAD = (
+    '{"callouts": [\n'
+    '{"text": "DEPTH 380", "page": 1, "region": [0.1, 0.2, 0.3, 0.25], '
+    '"role": "depth", "part_label": null, "confidence": 0.82},\n'
+    '{"text": "CUT OFF MID-OBJECT", "page": 1, "regio'
+)
+
+_DOCUMENT = DesignDocument(
+    source_name="sketch.png",
+    pages=(PageImage(page=1, png=b"\x89PNG fake"),),
+    blocks=(),
+)
+
+
+def _client_with_replies(
+    monkeypatch: pytest.MonkeyPatch, replies: list[str]
+) -> tuple[AnthropicVisionClient, list[str]]:
+    """An ``AnthropicVisionClient`` whose API round trips replay ``replies``."""
+    calls: list[str] = []
+
+    def fake_request_text(client: object, model: str, document: DesignDocument) -> str:
+        reply = replies[len(calls)]
+        calls.append(reply)
+        return reply
+
+    monkeypatch.setattr(vision_module, "_request_text", fake_request_text)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-not-real")
+    return AnthropicVisionClient(model="claude-test-model"), calls
+
+
+def test_malformed_reply_is_retried_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, calls = _client_with_replies(monkeypatch, ['{"callouts": [{', _VALID_PAYLOAD])
+    callouts = client.extract(_DOCUMENT)
+    assert len(calls) == 2
+    assert [c.text for c in callouts] == ["DEPTH 380"]
+
+
+def test_valid_first_reply_is_not_retried(monkeypatch: pytest.MonkeyPatch) -> None:
+    client, calls = _client_with_replies(monkeypatch, [_VALID_PAYLOAD])
+    callouts = client.extract(_DOCUMENT)
+    assert len(calls) == 1
+    assert [c.text for c in callouts] == ["DEPTH 380"]
+
+
+def test_salvage_keeps_fragments_when_the_retry_is_also_malformed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, calls = _client_with_replies(monkeypatch, ['{"callouts": [{', _TRUNCATED_PAYLOAD])
+    # No exception escapes: the complete entry from the broken reply survives.
+    callouts = client.extract(_DOCUMENT)
+    assert len(calls) == 2
+    assert [c.text for c in callouts] == ["DEPTH 380"]
+    assert callouts[0].page == 1
+    assert callouts[0].region == (0.1, 0.2, 0.3, 0.25)
+
+
+def test_persistent_malformed_replies_raise_when_nothing_salvages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, calls = _client_with_replies(
+        monkeypatch, ['{"callouts": [{', "I could not read this drawing, sorry."]
+    )
+    with pytest.raises(VisionError):
+        client.extract(_DOCUMENT)
+    assert len(calls) == 2
+
+
+def test_salvage_skips_incomplete_fragments() -> None:
+    callouts = salvage_callouts(_TRUNCATED_PAYLOAD)
+    assert [c.text for c in callouts] == ["DEPTH 380"]
+    # Nothing decodable at all — salvage yields nothing, error path stands.
+    assert salvage_callouts("I could not read this drawing, sorry.") == ()

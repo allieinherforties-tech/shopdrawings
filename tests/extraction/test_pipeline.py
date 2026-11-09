@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from shop_drawings.extraction import DesignDocument, Region, VisionCallout, extract_spec
-from shop_drawings.extraction.vision import VisionError
+from shop_drawings.extraction.vision import VisionError, parse_callouts
 from shop_drawings.schema import (
     DimensionKind,
     Edge,
@@ -249,6 +249,27 @@ def test_vision_api_error_degrades_to_text_only(
     assert result.vision.error is not None
     assert "VisionError" in result.vision.error
     assert any("degraded" in record.message for record in caplog.records)
+
+
+class _PersistentlyMalformedVisionClient:
+    """A ``VisionClient`` that fails exactly like an exhausted retry+salvage."""
+
+    def extract(self, document: DesignDocument) -> tuple[VisionCallout, ...]:
+        parse_callouts('{"callouts": [{"text": "X", "page": 1, "regio')
+        raise AssertionError("unreachable")  # parse_callouts must raise
+
+
+def test_persistent_malformed_json_still_records_the_visible_error(
+    tmp_path: Path,
+) -> None:
+    image = tmp_path / "sketch.png"
+    image.write_bytes(_png_bytes())
+    result = extract_spec(image, vision_client=_PersistentlyMalformedVisionClient())
+    # The upload still produces a spec, and the review UI sees why vision
+    # failed — the error entry is not swallowed by the retry/salvage path.
+    assert result.vision is not None
+    assert result.vision.error is not None
+    assert "not valid callout JSON" in result.vision.error
 
 
 def test_high_confidence_vision_reading_proposes_a_traced_value(
