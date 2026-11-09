@@ -39,6 +39,7 @@ from .models import (
     SizeSpan,
     TextBlock,
     TitleKV,
+    VariantDimension,
 )
 
 _NUM = r"(?P<num>\d+(?:\.\d+)?)"
@@ -55,6 +56,7 @@ _CONF_SIZE_SPAN: Final = 0.85
 _CONF_HOLE_PATTERN: Final = 0.9
 _CONF_SETBACK: Final = 0.85
 _CONF_EDGES: Final = 0.9
+_CONF_VARIANT: Final = 0.85
 _CONF_BARE: Final = 0.5
 
 _TITLE_KEYS: Final = (
@@ -174,6 +176,18 @@ _PART_WORDS: Final = {
 
 _BARE_RE: Final = re.compile(rf"^{_NUM}{_UNIT}\s*$", re.IGNORECASE)
 
+# Variant alternatives: 'H 22" OR 24"', 'DEPTH 380 OR 400'. Two numbers joined
+# by OR — one line, two possible values, no way to pick. The units (if any)
+# are quoted verbatim in the question; the values stay as stated.
+_NUMBER: Final = r"\d+(?:\.\d+)?"
+_VARIANT_RE: Final = re.compile(
+    r"^(?P<lead>\D*?)"
+    rf"(?P<first>{_NUMBER})(?:\s*(?:MM|CM|IN)\b|[\"”″'])?\s*"
+    r"\bOR\b"
+    rf"\s*(?P<second>{_NUMBER})(?:\s*(?:MM|CM|IN)\b|[\"”″'])?\s*$",
+    re.IGNORECASE,
+)
+
 _EDGE_VALUES: Final = {"FRONT", "BACK", "LEFT", "RIGHT", "TOP", "BOTTOM"}
 
 _KIND_ALIASES: Final = {"THK": "thickness"}
@@ -240,6 +254,18 @@ def parse_block(block: TextBlock) -> LineParse:
 
     if _SHEET_NOISE_RE.match(text):
         return LineParse(block=block)
+
+    # 1b. Variant alternatives: 'H 22" OR 24"' — a question, never a pick.
+    match = _VARIANT_RE.match(text)
+    if match:
+        return LineParse(
+            block=block,
+            variant=VariantDimension(
+                values=(float(match.group("first")), float(match.group("second"))),
+                block=block,
+                confidence=_CONF_VARIANT,
+            ),
+        )
 
     # 2. Edge treatment: "EDGE BAND FRONT, TOP".
     match = _EDGES_RE.match(text)
@@ -528,4 +554,5 @@ def apply_block_overrides(parsed: LineParse) -> LineParse:
         feature=parsed.feature,
         edge_banding=edge_banding,
         bare_number=parsed.bare_number,
+        variant=parsed.variant,
     )

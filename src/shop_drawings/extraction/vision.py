@@ -23,7 +23,23 @@ from typing import Final, Protocol
 
 from .models import KNOWN_ROLES, DesignDocument
 
-_MAX_TOKENS: Final = 4096
+_MAX_TOKENS: Final = 16384
+
+#: Vision model used when ANTHROPIC_API_KEY is configured. The env key gate is
+#: the only configuration read; without it nothing in the pipeline changes.
+VISION_MODEL: Final = "claude-sonnet-5"
+
+
+def vision_client_from_env(model: str = VISION_MODEL) -> VisionClient | None:
+    """A vision client when a key is configured, else ``None``.
+
+    The one place the ANTHROPIC_API_KEY gate is read: callers pass the result
+    straight through — ``None`` means the deterministic text-only path runs
+    exactly as it always has.
+    """
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return None
+    return AnthropicVisionClient(model=model)
 
 
 class VisionError(RuntimeError):

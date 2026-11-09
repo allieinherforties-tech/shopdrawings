@@ -1,10 +1,16 @@
 """End-to-end: design files in, schema-valid specs out, questions where due."""
 
+from __future__ import annotations
+
+import logging
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from shop_drawings.extraction import VisionCallout, extract_spec
+import pytest
+
+from shop_drawings.extraction import DesignDocument, Region, VisionCallout, extract_spec
+from shop_drawings.extraction.vision import VisionError
 from shop_drawings.schema import (
     DimensionKind,
     Edge,
@@ -220,3 +226,162 @@ def test_document_with_no_read_content_asks_instead_of_lying(tmp_path: Path) -> 
     result = extract_spec(pdf)
     assert not result.spec.parts
     assert any("No fabrication content" in q for q in result.spec.unresolved_questions)
+
+
+class _FailingVisionClient:
+    """A ``VisionClient`` whose API always fails — no network."""
+
+    def extract(self, document: DesignDocument) -> tuple[VisionCallout, ...]:
+        raise VisionError("anthropic: api error 500 (overloaded)")
+
+
+def test_vision_api_error_degrades_to_text_only(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    image = tmp_path / "sketch.png"
+    image.write_bytes(_png_bytes())
+    with caplog.at_level(logging.WARNING, logger="shop_drawings.extraction.pipeline"):
+        result = extract_spec(image, vision_client=_FailingVisionClient())
+    # The upload still produces a spec — the text-only path, questions intact.
+    assert not result.spec.parts
+    assert any("No fabrication content" in q for q in result.spec.unresolved_questions)
+    assert result.vision is not None
+    assert result.vision.error is not None
+    assert "VisionError" in result.vision.error
+    assert any("degraded" in record.message for record in caplog.records)
+
+
+def test_high_confidence_vision_reading_proposes_a_traced_value(
+    tmp_path: Path, stub_vision: Callable[..., Any]
+) -> None:
+    image = tmp_path / "sheet.png"
+    image.write_bytes(_png_bytes())
+    client = stub_vision(
+        VisionCallout(
+            text="DOOR - QTY 2",
+            page=1,
+            region=(0.05, 0.10, 0.30, 0.12),
+            role="part_label",
+            part_label="DOOR",
+            confidence=0.88,
+        ),
+        VisionCallout(
+            text="18MM OAK",
+            page=1,
+            region=(0.05, 0.13, 0.30, 0.15),
+            role="material",
+            part_label=None,
+            confidence=0.80,
+        ),
+        VisionCallout(
+            text="396 X 296",
+            page=1,
+            region=(0.05, 0.16, 0.30, 0.18),
+            role=None,
+            part_label=None,
+            confidence=0.92,
+        ),
+    )
+    result = extract_spec(image, vision_client=client)
+    door = result.spec.parts[0]
+    dim = door.dimensions[DimensionKind.LENGTH]
+    assert dim.value == 396.0
+    # Traceability holds for vision-proposed values: page, region, and the
+    # exact text the model read. The cited crop is the read region, padded.
+    assert dim.source.page == 1
+    assert dim.source.text == "396 X 296"
+    expected = Region(0.05, 0.16, 0.30, 0.18).padded().as_tuple()
+    assert dim.source.region == pytest.approx(expected)
+
+
+def test_variant_callout_becomes_a_question_offering_the_variants(
+    tmp_path: Path, stub_vision: Callable[..., Any]
+) -> None:
+    image = tmp_path / "product-sheet.png"
+    image.write_bytes(_png_bytes())
+    client = stub_vision(
+        VisionCallout(
+            text='H 22" OR 24"',
+            page=1,
+            region=(0.30, 0.30, 0.50, 0.35),
+            role="height",
+            part_label=None,
+            confidence=0.95,
+        ),
+    )
+    result = extract_spec(image, vision_client=client)
+    # Neither variant was picked: no dimension, no constraint, only a question.
+    assert not result.spec.parts
+    assert not result.spec.constraints
+    joined = "\n".join(result.spec.unresolved_questions)
+    assert 'H 22" OR 24"' in joined
+    assert "Which value applies?" in joined
+
+
+def test_variant_in_a_part_column_is_still_only_a_question(
+    tmp_path: Path, stub_vision: Callable[..., Any]
+) -> None:
+    image = tmp_path / "variant-column.png"
+    image.write_bytes(_png_bytes())
+    client = stub_vision(
+        VisionCallout(
+            text="DOOR - QTY 2",
+            page=1,
+            region=(0.05, 0.10, 0.30, 0.12),
+            role="part_label",
+            part_label="DOOR",
+            confidence=0.88,
+        ),
+        VisionCallout(
+            text='H 22" OR 24"',
+            page=1,
+            region=(0.05, 0.13, 0.30, 0.15),
+            role="height",
+            part_label="DOOR",
+            confidence=0.95,
+        ),
+    )
+    result = extract_spec(image, vision_client=client)
+    door = result.spec.parts[0]
+    assert DimensionKind.HEIGHT not in door.dimensions
+    assert any("Which value applies?" in q for q in result.spec.unresolved_questions)
+
+
+def test_vision_observations_record_what_became_of_each_callout(
+    cabinet_pdf: Path, stub_vision: Callable[..., Any]
+) -> None:
+    client = stub_vision(
+        # Re-reads the text layer's own "DEPTH 380" line.
+        VisionCallout(
+            text="DEPTH 380",
+            page=1,
+            region=(0.0, 0.0, 1.0, 1.0),
+            role="depth",
+            part_label=None,
+            confidence=0.70,
+        ),
+        # Not in the text layer; above the floor → proposed block.
+        VisionCallout(
+            text="18MM OAK",
+            page=1,
+            region=(0.05, 0.90, 0.30, 0.95),
+            role="material",
+            part_label=None,
+            confidence=0.90,
+        ),
+        # The model itself doubts it → question, never a value.
+        VisionCallout(
+            text="700",
+            page=1,
+            region=(0.40, 0.40, 0.50, 0.45),
+            role="width",
+            part_label=None,
+            confidence=0.30,
+        ),
+    )
+    result = extract_spec(cabinet_pdf, vision_client=client)
+    assert result.vision is not None
+    by_text = {o.text: o.outcome for o in result.vision.observations}
+    assert by_text["DEPTH 380"] == "upgraded"
+    assert by_text["18MM OAK"] == "proposed"
+    assert by_text["700"] == "question"

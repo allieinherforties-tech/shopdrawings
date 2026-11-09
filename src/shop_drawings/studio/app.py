@@ -24,7 +24,7 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from shop_drawings.extraction.pipeline import extract_spec
+from shop_drawings.extraction.pipeline import extract_spec, vision_report
 from shop_drawings.extraction.vision import VisionClient
 from shop_drawings.review.app import create_app
 from shop_drawings.studio import jobs
@@ -63,10 +63,11 @@ def create_studio_app(
         return jobs.list_jobs(jobs_dir)
 
     def _extract(paths: jobs.JobPaths, source_path: Path) -> None:
-        """Run extraction and persist the spec and rendered source pages."""
+        """Run extraction and persist the spec, rendered pages, and vision record."""
         result = extract_spec(source_path, vision_client=vision_client)
         spec = result.spec
         jobs.write_spec(paths, spec.model_dump_json(indent=2) + "\n")
+        jobs.write_vision(paths, vision_report(result))
         jobs.write_pages(
             paths,
             [(page.page, page.media_type, page.png) for page in result.document.pages],
@@ -120,6 +121,9 @@ def create_studio_app(
     def _pages_for_job(request: Request) -> Path:
         return _paths_for(request).pages
 
+    def _vision_for_job(request: Request) -> Path:
+        return _paths_for(request).vision
+
     def _paths_for(request: Request) -> jobs.JobPaths:
         job_id = str(request.path_params.get("job_id", ""))
         if not job_id or "/" in job_id:
@@ -128,7 +132,11 @@ def create_studio_app(
 
     # One review instance serves every job: the spec and source-page
     # directories are resolved per request from the mounted job id.
-    review = create_app(_spec_for_job, source_images_dir=_pages_for_job)
+    review = create_app(
+        _spec_for_job,
+        source_images_dir=_pages_for_job,
+        vision_path=_vision_for_job,
+    )
     app.mount("/jobs/{job_id}", review, name="review-job")
 
     @app.get("/failed/{job_id}", response_class=HTMLResponse)

@@ -8,6 +8,8 @@ in ``shop_drawings.schema`` — this layer only surfaces it.
 
 from __future__ import annotations
 
+import json
+import logging
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypeAlias
@@ -34,12 +36,15 @@ STATIC_DIR = Path(__file__).parent / "static"
 
 _PAGE_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
 
+logger = logging.getLogger(__name__)
+
 #: Where the review spec comes from. A plain ``Path`` is the single-spec
 #: mode (``python -m shop_drawings.review``); a resolver reads the job id
 #: the app was mounted under and returns that job's spec — how the studio
 #: front door serves many jobs from one mounted review instance.
 SpecPathSource: TypeAlias = Path | Callable[[Request], Path]
 ImageDirSource: TypeAlias = Path | Callable[[Request], Path] | None
+VisionPathSource: TypeAlias = Path | Callable[[Request], Path] | None
 
 
 class CorrectionRequest(BaseModel):
@@ -109,10 +114,27 @@ def _find_page_image(source_images_dir: Path | None, page: int) -> Path | None:
     return None
 
 
+def _read_vision_record(path: Path | None) -> dict[str, object] | None:
+    """Read a vision record tolerantly; ``None`` when absent or broken.
+
+    Kept next to the app rather than importing the studio's ``jobs`` module:
+    the review gate must stay independent of the studio front door.
+    """
+    if path is None or not path.is_file():
+        return None
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("unreadable vision record at %s: %s", path, exc)
+        return None
+    return raw if isinstance(raw, dict) else None
+
+
 def create_app(
     spec_path: SpecPathSource,
     *,
     source_images_dir: ImageDirSource = None,
+    vision_path: VisionPathSource = None,
 ) -> FastAPI:
     """Build the review app against one spec file — or, given a resolver,
     against whatever spec the request's job names.
@@ -136,6 +158,13 @@ def create_app(
         if isinstance(source_images_dir, Path):
             return source_images_dir
         return source_images_dir(request)
+
+    def _vision_for(request: Request) -> Path | None:
+        if vision_path is None:
+            return None
+        if isinstance(vision_path, Path):
+            return vision_path
+        return vision_path(request)
 
     app = FastAPI(title="Shop Drawings — Review Gate", docs_url=None, redoc_url=None)
 
@@ -215,6 +244,20 @@ def create_app(
     @app.get("/api/log", response_model=None)
     def get_log(request: Request) -> list[LogEntry]:
         return _store_for(request).read_log()
+
+    @app.get("/api/vision", response_model=None)
+    def get_vision(request: Request) -> Response:
+        """The vision pass's record — its readings and what became of them.
+
+        404 when no record exists (vision never configured for this job or
+        review-only mode): the UI hides the panel rather than showing a
+        stub. An unreadable record is also reported as absent.
+        """
+        path = _vision_for(request)
+        report = _read_vision_record(path) if path is not None else None
+        if report is None:
+            raise HTTPException(status_code=404, detail="no vision record for this job")
+        return JSONResponse(report)
 
     @app.get("/api/page/{page}/image")
     def page_image(request: Request, page: int) -> Response:
