@@ -83,17 +83,25 @@ def _all_value_addresses(spec_data: dict[str, Any]) -> list[dict[str, Any]]:
     return addresses
 
 
-def run_full_pipeline(work_dir: Path) -> PipelineRun:
+def run_full_pipeline(
+    work_dir: Path,
+    *,
+    pdf_path: Path | None = None,
+    project_name: str | None = PROJECT_NAME,
+) -> PipelineRun:
     """Prove the loop: extract → validate → review → approve → generate.
 
     Every step runs the real layer; the review flow goes through the HTTP
-    API exactly as the browser UI does.
+    API exactly as the browser UI does. ``pdf_path`` defaults to the
+    ReportLab cabinet fixture (built fresh, deterministically); pass a
+    real drawing (the Globus redline) to run the same path on it.
     """
     work_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Extraction: the ReportLab cabinet drawing in, a draft spec out.
-    pdf_path = create_cabinet_pdf(work_dir / f"{PROJECT_NAME}.pdf")
-    extracted = extract_spec(pdf_path, project_name=PROJECT_NAME)
+    # 1. Extraction: the design drawing in, a draft spec out.
+    if pdf_path is None:
+        pdf_path = create_cabinet_pdf(work_dir / f"{project_name}.pdf")
+    extracted = extract_spec(pdf_path, project_name=project_name)
     draft = extracted.spec
     draft_report = validate_spec(draft)
     draft_issue_messages = tuple(
