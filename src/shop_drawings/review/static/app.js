@@ -27,14 +27,17 @@ function findValue(address) {
   return null;
 }
 
-function cropHtml(source) {
+/* Provenance: one click from any row to the exact page region its value
+   was read from. The button opens the crop modal (page image + highlighted
+   region + the quoted source text). */
+function sourceHtml(source, label) {
   const [x0, y0, x1, y1] = source.region;
-  const box = `<span class="box" style="left:${x0 * 100}%;top:${y0 * 100}%;` +
-    `width:${(x1 - x0) * 100}%;height:${(y1 - y0) * 100}%"></span>`;
-  return `<button class="crop" title="Page ${source.page}: “${escapeHtml(source.text)}” — click to enlarge"` +
-    ` data-page="${source.page}" data-x0="${x0}" data-y0="${y0}" data-x1="${x1}" data-y1="${y1}">` +
-    `<img src="api/page/${source.page}/image" alt="source page ${source.page}">${box}</button>`;
+  return `<button class="source-btn" title="Page ${source.page}: “${escapeHtml(source.text)}” — click to enlarge"` +
+    ` data-page="${source.page}" data-x0="${x0}" data-y0="${y0}" data-x1="${x1}" data-y1="${y1}"` +
+    ` data-text="${escapeHtml(source.text)}">${escapeHtml(label)} · page ${source.page} ↗</button>`;
 }
+
+const cropHtml = (source) => sourceHtml(source, "Source");
 
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, (c) => ({
@@ -129,6 +132,17 @@ function render() {
   renderValues(approved);
   renderOutputs();
   renderLog();
+  renderNav(q);
+}
+
+/* Queue-by-kind navigation: one glance shows how much work of each kind
+   there is, and each chip jumps to its section. */
+function renderNav(q) {
+  const remaining = q.unreviewed.length + q.parts.length + q.constraints.length;
+  $("nav-count-questions").textContent = q.questions.length;
+  $("nav-count-conflicts").textContent = q.conflicts.length;
+  $("nav-count-lowconf").textContent = q.low_confidence.length;
+  $("nav-count-values").textContent = remaining;
 }
 
 function renderOutputs() {
@@ -155,7 +169,7 @@ function renderQuestions(questions, approved) {
   }
   wrap.innerHTML = questions.map((text, i) => `
     <div class="question">
-      <p>${escapeHtml(text)}</p>
+      <p><span class="q-num">Q${i + 1} of ${questions.length}</span>${escapeHtml(text)}</p>
       <div class="answer-row">
         <input type="text" id="answer-${i}" placeholder="Your answer…" ${approved ? "disabled" : ""}>
         <button data-q="${i}" ${approved ? "disabled" : ""}>Resolve</button>
@@ -283,22 +297,31 @@ function renderValues(approved) {
 
 function constraintRowHtml(c, approved) {
   return `
-    <div class="value-row">
+    <div class="value-row ${rowClassFor(c.status)}">
       <div class="big">${fmt(c.value)}</div>
       <div class="ident">
         <div class="label">assembly · ${escapeHtml(c.type)}</div>
         <div class="src">“${escapeHtml(c.source.text)}” · page ${c.source.page}</div>
       </div>
       ${cropHtml(c.source)}
-      <span class="status-chip">${c.status.replace("_", " ")}</span>
+      ${statusChipHtml(c.status)}
       <button class="small" data-constraint="${c.index}" ${approved ? "disabled" : ""}>Confirm</button>
     </div>`;
+}
+
+/* A row is an assumption until the reviewer rules on it: flagged rows read
+   as unverified (amber accent), approved rows as verified (green). */
+const rowClassFor = (status) => (status === "approved" ? "approved" : "flagged");
+
+function statusChipHtml(status) {
+  const label = status === "approved" ? "verified ✓" : "assumption — unverified";
+  return `<span class="status-chip status-${escapeHtml(status)}">${label}</span>`;
 }
 
 function valueRowHtml(v, approved, variant) {
   const addr = v.address;
   return `
-    <div class="value-row" data-key="${escapeHtml(addrKey(addr))}">
+    <div class="value-row ${rowClassFor(v.status)}" data-key="${escapeHtml(addrKey(addr))}">
       <div class="big">${fmt(v.value)}</div>
       <div class="ident">
         <div class="label">${escapeHtml(v.label)}</div>
@@ -310,7 +333,7 @@ function valueRowHtml(v, approved, variant) {
         </div>
         <div class="meta">${Math.round(v.confidence * 100)}%</div>` : ""}
       ${cropHtml(v.source)}
-      <span class="status-chip">${v.status.replace("_", " ")}</span>
+      ${statusChipHtml(v.status)}
       <span class="edit-row">
         <button class="small" data-confirm="${escapeHtml(addrKey(addr))}" ${approved ? "disabled" : ""}>Confirm</button>
         <button class="small" data-edit="${escapeHtml(addrKey(addr))}" ${approved ? "disabled" : ""}>Edit</button>
@@ -427,12 +450,13 @@ function openCrop(btn) {
   const body = $("crop-modal-body");
   const box = `<span class="box" style="left:${d.x0 * 100}%;top:${d.y0 * 100}%;` +
     `width:${(d.x1 - d.x0) * 100}%;height:${(d.y1 - d.y0) * 100}%"></span>`;
-  body.innerHTML = `<img src="api/page/${d.page}/image" alt="source page ${d.page}">${box}`;
+  const caption = `<figcaption class="crop-caption">page ${d.page} — “${escapeHtml(d.text || "")}”</figcaption>`;
+  body.innerHTML = `<img src="api/page/${d.page}/image" alt="source page ${d.page}">${box}${caption}`;
   $("crop-modal").hidden = false;
 }
 
 document.addEventListener("click", (event) => {
-  const crop = event.target.closest("button.crop");
+  const crop = event.target.closest("button.source-btn");
   if (crop) openCrop(crop);
   if (event.target.matches("[data-close]")) $("crop-modal").hidden = true;
 });

@@ -23,6 +23,38 @@
   </header>
 
   <main id="main">
+    <section id="sec-about" aria-labelledby="h-about">
+      <h2 id="h-about">About this demo</h2>
+      <div class="about-cols">
+        <div>
+          <h3>What is real</h3>
+          <p>Everything in this job runs the actual pipeline: extraction from
+          the uploaded design into a typed specification, this review gate,
+          provenance on every value (each dimension links to the exact text
+          and page region it was read from), and — when the spec is approved —
+          deterministic generation of the .3dm model, DXF cut sheets, and cut
+          list.</p>
+        </div>
+        <div>
+          <h3>What is prototype</h3>
+          <p>The generated fabrication files are synthetic prototype outputs:
+          they are generated from a stand-in redline and have not been
+          validated against a real build. They demonstrate the pipeline —
+          do not fabricate from them.</p>
+        </div>
+      </div>
+      <p class="about-note">The input for this job is a stand-in redline
+      pending studio approval — not an approved shop drawing.</p>
+    </section>
+
+    <nav id="queue-nav" aria-label="Review queue by kind">
+      <span class="queue-nav-label">The queue, by kind:</span>
+      <a href="#sec-questions">Blocked questions <b id="nav-count-questions"></b></a>
+      <a href="#sec-conflicts">Conflicts <b id="nav-count-conflicts"></b></a>
+      <a href="#sec-lowconf">Low-confidence associations <b id="nav-count-lowconf"></b></a>
+      <a href="#sec-values">Values to confirm <b id="nav-count-values"></b></a>
+    </nav>
+
     <section id="sec-questions" aria-labelledby="h-questions">
       <h2 id="h-questions">Blocked questions <span class="count" id="count-questions"></span></h2>
       <p class="section-hint">The extractor could not resolve these. Answer from your knowledge of the job — the answer is recorded in the review log, and any value it changes should be corrected below.</p>
