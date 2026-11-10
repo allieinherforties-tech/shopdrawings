@@ -190,6 +190,50 @@ def test_unassociated_findings_become_questions() -> None:
     assert any("500" in q for q in spec.unresolved_questions)
 
 
+def test_uninterpretable_annotation_questions_carry_the_grammar_hint() -> None:
+    """A line the parser cannot read must say what it CAN read — otherwise a
+    reviewer concludes the tool is broken rather than their formatting."""
+    doc = document(
+        blk("SIDE PANEL - QTY 2", 0.08, 0.19),
+        blk("18MM BIRCH PLYWOOD", 0.08, 0.215),
+        blk("720 X 380 X 18", 0.08, 0.24),
+        blk("PROJECT: ENTRY-CABINET-001", 0.60, 0.05),
+        blk("UNITS: MM", 0.60, 0.08),
+        # Normal-case prose from a design tool: mixed case, vulgar fraction.
+        blk("drawer front — 21¾ in × 8½ in", 0.60, 0.30),
+    )
+    assembly = assemble(doc)
+    assert assembly.unassociated, "the prose line must become a question, not vanish"
+    assert all(u.kind is UnassociatedKind.UNPARSEABLE_ANNOTATION for u in assembly.unassociated)
+    spec = build_spec(assembly, source_name="test.pdf")
+    hinted = [q for q in spec.unresolved_questions if "could not interpret annotation" in q]
+    assert hinted, "the uninterpretable line must produce a question"
+    assert all("uppercase shop-drawing callouts" in q for q in hinted)
+    assert all("SIDE PANEL — QTY 2" in q for q in hinted)
+
+
+def test_part_without_qty_marker_asks_for_quantity() -> None:
+    """A label with no QTY marker still defaults to 1 — but the default is a
+    dedicated review question, never a silent assumption."""
+    doc = document(
+        blk("SHELF", 0.08, 0.19),
+        blk("18MM BIRCH PLYWOOD", 0.08, 0.215),
+        blk("702 X 500 X 18", 0.08, 0.24),
+        blk("PROJECT: ENTRY-CABINET-001", 0.60, 0.05),
+        blk("UNITS: MM", 0.60, 0.08),
+    )
+    spec = build_spec(assemble(doc), source_name="test.pdf")
+    assert len(spec.parts) == 1
+    assert spec.parts[0].quantity == 1, "the default itself does not change"
+    assert any("states no quantity" in q and "shelf" in q for q in spec.unresolved_questions)
+
+
+def test_part_with_qty_marker_does_not_ask_for_quantity() -> None:
+    spec = build_spec(assemble(full_callout()), source_name="test.pdf")
+    assert spec.parts[0].quantity == 2
+    assert not any("states no quantity" in q for q in spec.unresolved_questions)
+
+
 def test_rejected_vision_readings_land_in_questions() -> None:
     assembly = assemble(full_callout())
     extra = Unassociated(

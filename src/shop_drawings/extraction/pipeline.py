@@ -336,6 +336,8 @@ def _mark_unreadable(spec: FurnitureSpec, source_name: str) -> FurnitureSpec:
     """A spec with nothing in it is a question, not a silent empty file."""
     question = (
         f"No fabrication content could be read from {source_name}. Confirm this "
-        "file is the design drawing, or enter its contents manually."
+        "file is the design drawing, re-annotated in the uppercase callout style "
+        "the parser reads (like 'SIDE PANEL — QTY 2' with tagged dimensions), "
+        "or upload a different file."
     )
     return spec.model_copy(update={"unresolved_questions": [*spec.unresolved_questions, question]})

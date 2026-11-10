@@ -82,7 +82,11 @@ def test_quantities_multiply_into_the_sum(make_spec: Any, constraint: Any) -> No
 
 
 def test_closure_without_part_extents_cannot_be_trusted(make_spec: Any, constraint: Any) -> None:
-    spec = make_spec(parts=[], constraints=[constraint("overall_width", 800)])
+    # A draft (needs_review) spec: an approved zero-part spec is now refused
+    # by the review gate itself, so closure sees it as a draft.
+    spec = make_spec(
+        parts=[], constraints=[constraint("overall_width", 800)], status="needs_review"
+    )
 
     issues = closure_issues(spec)
 

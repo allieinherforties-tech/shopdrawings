@@ -175,3 +175,20 @@ def test_forged_approved_spec_is_still_blocked(
     with pytest.raises(NotApprovedError) as exc_info:
         generate(forged, out_dir=tmp_path / "fabrication")
     assert "fails the review gate" in str(exc_info.value)
+
+
+def test_forged_zero_part_spec_is_still_blocked(
+    approved_spec: FurnitureSpec, tmp_path: Path
+) -> None:
+    """A zero-part spec that bypassed validation (``model_copy`` skips the
+    schema's constructor gate) is refused by the generator too: an approved
+    spec with nothing in it would only produce an empty cut list."""
+    forged = approved_spec.model_copy(update={"parts": []})
+    assert forged.status == ReviewStatus.APPROVED
+    with pytest.raises(NotApprovedError) as exc_info:
+        generate(forged, out_dir=tmp_path / "fabrication")
+    assert "no parts were extracted" in str(exc_info.value)
+    out_dir = tmp_path / "fabrication"
+    assert not out_dir.exists() or not any(out_dir.iterdir()), (
+        "a refused spec must leave no files behind"
+    )

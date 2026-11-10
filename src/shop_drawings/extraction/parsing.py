@@ -423,6 +423,7 @@ def parse_block(block: TextBlock) -> LineParse:
                 part_label=PartLabel(
                     label=label,
                     quantity=int(qty_text) if qty_text else 1,
+                    quantity_stated=qty_text is not None,
                     block=block,
                     confidence=_CONF_LABEL,
                 ),

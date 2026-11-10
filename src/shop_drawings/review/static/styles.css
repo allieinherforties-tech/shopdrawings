@@ -370,6 +370,8 @@ input:focus { outline: 2px solid var(--blue); outline-offset: 0; border-color: v
 }
 .banner.error { background: var(--red-bg); color: var(--red); border: 1px solid #e4c1bc; }
 .banner.success { background: var(--green-bg); color: var(--green); border: 1px solid #cfe3d8; }
+.banner.warn { background: var(--red-bg); color: var(--red); border: 1px solid #e4c1bc; margin-bottom: 16px; }
+.banner.warn p { margin: 6px 0 0; font-weight: normal; }
 .banner ul { margin: 8px 0 0; padding-left: 20px; }
 
 /* Modal */

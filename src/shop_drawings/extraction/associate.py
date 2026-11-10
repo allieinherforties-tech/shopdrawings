@@ -91,6 +91,7 @@ class PartCallout:
     label: str
     part_id: str
     quantity: int
+    quantity_stated: bool
     label_block: TextBlock
     material: str | None = None
     material_block: TextBlock | None = None
@@ -132,9 +133,12 @@ def parse_document(document: DesignDocument) -> list[LineParse]:
 class _CalloutBuilder:
     """Accumulates member lines for one part callout."""
 
-    def __init__(self, label: str, quantity: int, label_block: TextBlock) -> None:
+    def __init__(
+        self, label: str, quantity: int, quantity_stated: bool, label_block: TextBlock
+    ) -> None:
         self.label = label
         self.quantity = quantity
+        self.quantity_stated = quantity_stated
         self.label_block = label_block
         self.material: str | None = None
         self.material_block: TextBlock | None = None
@@ -181,6 +185,7 @@ class _CalloutBuilder:
             label=self.label,
             part_id=part_id,
             quantity=self.quantity,
+            quantity_stated=self.quantity_stated,
             label_block=self.label_block,
             material=self.material,
             material_block=self.material_block,
@@ -278,7 +283,9 @@ def assemble(document: DesignDocument) -> Assembly:
             continue
         if parsed.part_label is not None:
             label = parsed.part_label
-            builders.append(_CalloutBuilder(label.label, label.quantity, block))
+            builders.append(
+                _CalloutBuilder(label.label, label.quantity, label.quantity_stated, block)
+            )
             continue
         if parsed.variant is not None:
             # Checked before column adoption: a variant in a part's own column

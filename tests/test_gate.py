@@ -86,3 +86,26 @@ def test_an_approved_spec_with_an_unreviewed_constraint_is_rejected(
 
     with pytest.raises(ValidationError, match="review gate"):
         FurnitureSpec.model_validate(approved_spec_dict)
+
+
+def test_an_approved_spec_with_zero_parts_is_rejected(approved_spec_dict: dict[str, Any]) -> None:
+    """The zero-part hole: a spec with nothing extracted must not approve —
+    approving it would generate an empty cut list."""
+    approved_spec_dict["parts"] = []
+
+    with pytest.raises(ValidationError, match="review gate"):
+        FurnitureSpec.model_validate(approved_spec_dict)
+
+
+def test_zero_part_blocker_names_the_problem_and_the_expected_grammar(
+    cabinet_spec_dict: dict[str, Any],
+) -> None:
+    """The draft constructs, but the blocker says nothing was extracted and
+    what the parser can read — not just that approval failed."""
+    cabinet_spec_dict["parts"] = []
+    spec = FurnitureSpec.model_validate(cabinet_spec_dict)
+
+    errors = spec.approval_errors()
+
+    assert any("no parts were extracted" in error for error in errors)
+    assert any("SIDE PANEL" in error for error in errors)

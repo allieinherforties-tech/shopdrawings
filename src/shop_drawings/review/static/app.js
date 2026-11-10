@@ -108,6 +108,12 @@ function render() {
   const approved = state.specStatus === "approved";
   const q = state.queue;
 
+  // Zero parts extracted: the approval would produce an empty cut list.
+  // The schema gate refuses it server-side; this keeps the outcome impossible
+  // to miss on the page itself.
+  const zeroParts = !approved && state.spec.parts.length === 0;
+  $("zero-parts-warning").hidden = !zeroParts;
+
   $("project-meta").textContent =
     `${state.spec.project.name} · ${state.spec.project.units} · from ${state.spec.project.source}`;
 
