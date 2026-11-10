@@ -237,6 +237,14 @@ class FurnitureSpec(SpecModel):
         generator refuses anything that has not been approved.
         """
         errors: list[str] = []
+        if not self.parts:
+            errors.append(
+                "no parts were extracted from the source design — there is nothing "
+                "to fabricate, so an approval would generate an empty cut list. "
+                "The v1 parser reads uppercase shop-drawing callouts like "
+                "'SIDE PANEL — QTY 2' with tagged dimensions; upload a drawing "
+                "annotated in that style."
+            )
         if self.unresolved_questions:
             errors.append(
                 f"{len(self.unresolved_questions)} unresolved question(s) must be resolved first"
