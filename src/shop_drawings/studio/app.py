@@ -11,7 +11,15 @@ One FastAPI app that wires the pipeline's entry point to the review gate:
 - ``/jobs/{job_id}/`` — the review gate mounted once, resolving the spec
   per request from the job id. The review app is job-agnostic, so this
   mount serves every job; gate semantics live in the store and schema,
-  untouched here.
+  untouched here. Approving a job runs the generation pipeline (through
+  the review app's ``on_approved`` hook), which stores the .3dm model,
+  DXF cut sheets, cut list, and escalation packages under ``outputs/``
+  and offers them as download links in the review payload.
+- ``/jobs/{job_id}/outputs`` — the fabrication-outputs page: download
+  links for what generation produced, or the recorded failure, or an
+  explanation when nothing has been generated yet.
+- ``/jobs/{job_id}/outputs/{file}`` — one generated file as a download,
+  served only when the job's generation record lists it.
 - ``/failed/{job_id}`` — what failed, why, what to do.
 """
 
@@ -19,6 +27,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -26,9 +35,10 @@ from fastapi.staticfiles import StaticFiles
 
 from shop_drawings.extraction.pipeline import extract_spec, vision_report
 from shop_drawings.extraction.vision import VisionClient
-from shop_drawings.review.app import create_app
+from shop_drawings.review.app import OutputLink, create_app
+from shop_drawings.schema import FurnitureSpec
 from shop_drawings.studio import jobs
-from shop_drawings.studio.pages import failed_job_page
+from shop_drawings.studio.pages import failed_job_page, outputs_page
 
 logger = logging.getLogger(__name__)
 
@@ -126,17 +136,85 @@ def create_studio_app(
 
     def _paths_for(request: Request) -> jobs.JobPaths:
         job_id = str(request.path_params.get("job_id", ""))
+        return _job_paths(job_id)
+
+    def _job_paths(job_id: str) -> jobs.JobPaths:
         if not job_id or "/" in job_id:
             raise HTTPException(status_code=404, detail="unknown job")
         return jobs.JobPaths(jobs_dir, job_id)
 
+    def _generate_for_job(request: Request) -> None:
+        """Approved → generated: run the pipeline, record what it produced.
+
+        Runs synchronously — the reviewer's approve response carries the
+        download links, so the demo needs no background workers.
+        """
+        paths = _paths_for(request)
+        spec = FurnitureSpec.model_validate_json(paths.spec.read_text(encoding="utf-8"))
+        try:
+            record = jobs.run_generation(paths, spec)
+        except Exception as exc:
+            # The approval stands; the generation failure is the
+            # reviewer's outcome, recorded where the outputs page and the
+            # listing show it — logged here too, never swallowed.
+            logger.exception("generation failed for job %s", paths.root.name)
+            jobs.record_generation_failure(paths, error=f"{type(exc).__name__}: {exc}")
+            return
+        files = record.get("files")
+        logger.info(
+            "generated %d output file(s) for job %s",
+            len(files) if isinstance(files, list) else 0,
+            paths.root.name,
+        )
+
+    def _outputs_for(request: Request) -> list[OutputLink]:
+        """Download links for a job's generated outputs, if it has any."""
+        paths = _paths_for(request)
+        record = jobs.read_generation_record(paths)
+        if record is None or record.get("status") != jobs.GenerationStatus.GENERATED.value:
+            return []
+        job_id = paths.root.name
+        return [
+            OutputLink(label=label, url=f"/jobs/{job_id}/outputs/{quote(name)}")
+            for label, name in jobs.output_labels(record)
+        ]
+
     # One review instance serves every job: the spec and source-page
     # directories are resolved per request from the mounted job id.
+    # Approval runs generation (the hook); generated outputs surface as
+    # download links in the review payload.
     review = create_app(
         _spec_for_job,
         source_images_dir=_pages_for_job,
         vision_path=_vision_for_job,
+        on_approved=_generate_for_job,
+        outputs=_outputs_for,
     )
+
+    # Download endpoints, registered before the review mount so they win
+    # route matching under /jobs/{job_id}/.
+    @app.get("/jobs/{job_id}/outputs", response_class=HTMLResponse)
+    def job_outputs(job_id: str) -> HTMLResponse:
+        paths = _job_paths(job_id)
+        if not paths.spec.exists():
+            raise HTTPException(status_code=404, detail=f"unknown job: {job_id!r}")
+        return HTMLResponse(outputs_page(paths))
+
+    @app.get("/jobs/{job_id}/outputs/{file_path:path}", response_model=None)
+    def download_output(job_id: str, file_path: str) -> FileResponse:
+        paths = _job_paths(job_id)
+        record = jobs.read_generation_record(paths)
+        if record is None or record.get("status") != jobs.GenerationStatus.GENERATED.value:
+            raise HTTPException(status_code=404, detail="no generated outputs for this job")
+        # Only names the generation record lists are served — never an
+        # arbitrary path under (or beyond) the job's outputs directory.
+        if file_path not in {name for _, name in jobs.output_labels(record)}:
+            raise HTTPException(status_code=404, detail="no such output file")
+        target = paths.outputs / file_path
+        if not target.is_file():
+            raise HTTPException(status_code=404, detail="output file is missing")
+        return FileResponse(target, filename=Path(file_path).name)
+
     app.mount("/jobs/{job_id}", review, name="review-job")
 
     @app.get("/failed/{job_id}", response_class=HTMLResponse)

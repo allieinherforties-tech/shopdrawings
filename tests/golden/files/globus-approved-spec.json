@@ -1,0 +1,520 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "globus_redline_v4",
+    "units": "mm",
+    "source": "globus_redline_v4.pdf"
+  },
+  "parts": [
+    {
+      "id": "drawer_front",
+      "type": "panel",
+      "quantity": 1,
+      "material": "unspecified",
+      "dimensions": {
+        "width": {
+          "value": 552.4499999999999,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.04749644886363637,
+              0.17706699346405227,
+              0.20378196022727274,
+              0.20464052287581705
+            ],
+            "text": "WIDTH 21.75 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "height": {
+          "value": 215.89999999999998,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05111268939393938,
+              0.19667483660130716,
+              0.1943797348484849,
+              0.22424836601307194
+            ],
+            "text": "HEIGHT 8.5 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 19.049999999999997,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.03598484848484849,
+              0.21628267973856213,
+              0.2337121212121212,
+              0.2438562091503268
+            ],
+            "text": "THICKNESS 0.75 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.023857323232323216,
+            0.15630065359477122,
+            0.21069823232323237,
+            0.18571241830065363
+          ],
+          "text": "DRAWER FRONT"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "case_top",
+      "type": "panel",
+      "quantity": 1,
+      "material": "unspecified",
+      "dimensions": {
+        "width": {
+          "value": 558.8,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.055723248106060615,
+              0.2685702614379085,
+              0.1823922821969697,
+              0.2961437908496732
+            ],
+            "text": "WIDTH 22 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "depth": {
+          "value": 508.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05506036931818181,
+              0.28817810457516346,
+              0.18411576704545457,
+              0.31575163398692807
+            ],
+            "text": "DEPTH 20 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 19.049999999999997,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05801964962121212,
+              0.30778594771241835,
+              0.17642163825757579,
+              0.335359477124183
+            ],
+            "text": "THK 0.75 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.04348484848484849,
+            0.24780392156862752,
+            0.15966666666666665,
+            0.27721568627450976
+          ],
+          "text": "CASE TOP"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "case_bottom",
+      "type": "panel",
+      "quantity": 1,
+      "material": "unspecified",
+      "dimensions": {
+        "width": {
+          "value": 558.8,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.055723248106060615,
+              0.36007352941176474,
+              0.1823922821969697,
+              0.3876470588235294
+            ],
+            "text": "WIDTH 22 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "depth": {
+          "value": 508.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05506036931818181,
+              0.3796813725490196,
+              0.18411576704545457,
+              0.4072549019607843
+            ],
+            "text": "DEPTH 20 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 19.049999999999997,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05801964962121212,
+              0.39928921568627457,
+              0.17642163825757579,
+              0.4268627450980392
+            ],
+            "text": "THK 0.75 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.0291098484848485,
+            0.3393071895424837,
+            0.19704166666666664,
+            0.368718954248366
+          ],
+          "text": "CASE BOTTOM"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "case_sides_l_r",
+      "type": "panel",
+      "quantity": 1,
+      "material": "unspecified",
+      "dimensions": {
+        "height": {
+          "value": 444.5,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.04782196969696969,
+              0.45157679738562095,
+              0.20293560606060607,
+              0.4791503267973856
+            ],
+            "text": "HEIGHT 17.5 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "depth": {
+          "value": 508.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05506036931818181,
+              0.47118464052287584,
+              0.18411576704545457,
+              0.4987581699346405
+            ],
+            "text": "DEPTH 20 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 19.049999999999997,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05801964962121212,
+              0.4907924836601308,
+              0.17642163825757579,
+              0.5183660130718954
+            ],
+            "text": "THK 0.75 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.025593434343434352,
+            0.4308104575163399,
+            0.20618434343434341,
+            0.4602222222222222
+          ],
+          "text": "CASE SIDES L/R"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "shelf",
+      "type": "panel",
+      "quantity": 1,
+      "material": "unspecified",
+      "dimensions": {
+        "width": {
+          "value": 520.6999999999999,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.050787168560606055,
+              0.5430800653594771,
+              0.19522608901515154,
+              0.5706535947712419
+            ],
+            "text": "WIDTH 20.5 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "depth": {
+          "value": 508.0,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05506036931818181,
+              0.562687908496732,
+              0.18411576704545457,
+              0.5902614379084967
+            ],
+            "text": "DEPTH 20 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 19.049999999999997,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05801964962121212,
+              0.5822957516339871,
+              0.17642163825757579,
+              0.6098692810457516
+            ],
+            "text": "THK 0.75 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.0550631313131313,
+            0.5223137254901962,
+            0.12956313131313135,
+            0.5517254901960784
+          ],
+          "text": "SHELF"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "back_panel",
+      "type": "panel",
+      "quantity": 1,
+      "material": "unspecified",
+      "dimensions": {
+        "thickness": {
+          "value": 6.35,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05801964962121212,
+              0.6345833333333333,
+              0.17642163825757579,
+              0.6621568627450981
+            ],
+            "text": "THK 0.25 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.034375,
+            0.6138169934640523,
+            0.18335227272727272,
+            0.6432287581699346
+          ],
+          "text": "BACK PANEL"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "leg",
+      "type": "panel",
+      "quantity": 4,
+      "material": "unspecified",
+      "dimensions": {
+        "length": {
+          "value": 114.3,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.04914180871212122,
+              0.6868709150326797,
+              0.1995040246212121,
+              0.7144444444444444
+            ],
+            "text": "LENGTH 4.5 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.038920454545454536,
+            0.6661045751633987,
+            0.1715340909090909,
+            0.6955163398692811
+          ],
+          "text": "LEG - QTY 4"
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "rail",
+      "type": "panel",
+      "quantity": 1,
+      "material": "unspecified",
+      "dimensions": {
+        "width": {
+          "value": 25.4,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.05407788825757575,
+              0.758766339869281,
+              0.1866702178030303,
+              0.7863398692810458
+            ],
+            "text": "WIDTH 1.0 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        },
+        "thickness": {
+          "value": 12.7,
+          "tolerance": 0.0,
+          "source": {
+            "page": 2,
+            "region": [
+              0.06131036931818182,
+              0.778374183006536,
+              0.16786576704545456,
+              0.8059477124183005
+            ],
+            "text": "THK 0.5 IN"
+          },
+          "confidence": 0.95,
+          "status": "approved",
+          "reference": null
+        }
+      },
+      "edge_banding": [],
+      "features": [],
+      "source_references": [
+        {
+          "page": 2,
+          "region": [
+            0.061029040404040405,
+            0.738,
+            0.11405176767676768,
+            0.7674117647058823
+          ],
+          "text": "RAIL"
+        }
+      ],
+      "status": "approved"
+    }
+  ],
+  "constraints": [],
+  "unresolved_questions": [],
+  "status": "approved"
+}

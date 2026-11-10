@@ -6,6 +6,10 @@ A job is a directory under the studio's jobs root:
                                  (the extracted spec cites it as its source)
     jobs/<job-id>/spec.json      the extracted draft spec (review-ready jobs)
     jobs/<job-id>/pages/page-N…  rendered source pages for review crops
+    jobs/<job-id>/outputs/       fabrication files (.3dm, DXF sheets, cut
+                                 list, escalation packages — generated jobs)
+    jobs/<job-id>/generation.json  what generation produced, or why it
+                                 failed (generated jobs)
     jobs/<job-id>/error.json     why extraction failed (failed jobs)
 
 Job status is derived from what is on disk — a job is review-ready when its
@@ -18,6 +22,7 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -26,6 +31,9 @@ from pathlib import Path
 from typing import Final
 
 from pydantic import BaseModel
+
+from shop_drawings.generation.pipeline import GenerationResult, generate
+from shop_drawings.schema import FurnitureSpec
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +125,14 @@ class JobPaths:
     def pages(self) -> Path:
         return self.root / "pages"
 
+    @property
+    def outputs(self) -> Path:
+        return self.root / "outputs"
+
+    @property
+    def generation(self) -> Path:
+        return self.root / "generation.json"
+
     def source_for(self, name: str) -> Path:
         return self.root / safe_source_name(name)
 
@@ -191,6 +207,147 @@ def read_failure(paths: JobPaths) -> tuple[str, str] | None:
     except (OSError, json.JSONDecodeError) as exc:
         logger.warning("unreadable error record at %s: %s", paths.error, exc)
         return None
+
+
+class GenerationStatus(StrEnum):
+    """Outcome recorded for a job's generation run."""
+
+    GENERATED = "generated"
+    FAILED = "failed"
+
+
+#: Output file kinds, in the order the outputs page lists them.
+_KIND_LABELS: Final[dict[str, str]] = {
+    "model": "3D model (.3dm)",
+    "sheet": "Cut sheet (DXF)",
+    "cutlist": "Cut list (CSV)",
+    "escalation": "Escalation package",
+}
+
+
+def _generation_record(result: GenerationResult, out_dir: Path) -> dict[str, object]:
+    """What one successful generation produced, as a JSON-ready record.
+
+    File names are relative to ``out_dir`` — the download route serves by
+    these names and nothing else.
+    """
+    files: list[dict[str, str]] = []
+    if result.model_path is not None:
+        files.append({"name": result.model_path.name, "kind": "model"})
+    for sheet in result.sheet_paths:
+        files.append({"name": sheet.name, "kind": "sheet"})
+    if result.cut_list_path is not None:
+        files.append({"name": result.cut_list_path.name, "kind": "cutlist"})
+    for escalation in result.escalations:
+        for path in escalation.files:
+            files.append({"name": path.relative_to(out_dir).as_posix(), "kind": "escalation"})
+    return {
+        "version": 1,
+        "status": GenerationStatus.GENERATED.value,
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "files": files,
+        "escalations": [
+            {"part_id": escalation.part_id, "reasons": list(escalation.reasons)}
+            for escalation in result.escalations
+        ],
+        "checks": [
+            {
+                "name": check.name,
+                "status": check.status.value,
+                "failures": list(check.failures),
+                "notes": list(check.notes),
+            }
+            for check in result.checks
+        ],
+    }
+
+
+def output_labels(record: dict[str, object]) -> list[tuple[str, str]]:
+    """``(label, file name)`` pairs for a generation record, display order.
+
+    The one place output labels are decided — the review UI's download
+    links and the outputs page both render from this.
+    """
+    raw_files = record.get("files")
+    if not isinstance(raw_files, list):
+        return []
+    counters: dict[str, int] = {}
+    labels: list[tuple[str, str]] = []
+    for entry in raw_files:
+        if not isinstance(entry, dict):
+            continue
+        kind = str(entry.get("kind", ""))
+        name = str(entry.get("name", ""))
+        if not name:
+            continue
+        counters[kind] = counters.get(kind, 0) + 1
+        labels.append((_label_for(kind, name, counters[kind]), name))
+    return labels
+
+
+def _label_for(kind: str, name: str, count: int) -> str:
+    base = _KIND_LABELS.get(kind, "Output")
+    if kind == "sheet":
+        return f"{base} {count}"
+    if kind == "escalation":
+        # names are ``escalation/<part-id>/<file>``
+        parts = name.split("/")
+        part_id = parts[1] if len(parts) > 1 else name
+        return f"{base} — {part_id}"
+    return base
+
+
+def run_generation(paths: JobPaths, spec: FurnitureSpec) -> dict[str, object]:
+    """Run the generation pipeline for an approved spec, storing the outputs.
+
+    Writes the .3dm, DXF cut sheets, cut list, and any escalation packages
+    under ``outputs/``, and the run's record to ``generation.json``. Any
+    prior outputs are removed first — a stale file must never survive to
+    masquerade as this spec's output. Raises on failure with nothing left
+    behind (``generate`` removes its own files on a failed check); the
+    caller records the failure.
+    """
+    if paths.outputs.exists():
+        shutil.rmtree(paths.outputs)
+    record = _generation_record(generate(spec, out_dir=paths.outputs), paths.outputs)
+    write_generation_record(paths, record)
+    return record
+
+
+def record_generation_failure(paths: JobPaths, error: str) -> None:
+    """Record why generation failed — and leave no partial outputs behind."""
+    if paths.outputs.exists():
+        shutil.rmtree(paths.outputs)
+    write_generation_record(
+        paths,
+        {
+            "version": 1,
+            "status": GenerationStatus.FAILED.value,
+            "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
+            "error": error,
+        },
+    )
+
+
+def write_generation_record(paths: JobPaths, record: dict[str, object]) -> None:
+    """Persist the generation run's record beside the job's other records."""
+    paths.generation.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+
+
+def read_generation_record(paths: JobPaths) -> dict[str, object] | None:
+    """The job's generation record, or ``None`` when absent/unreadable.
+
+    An unreadable record is logged and reported as absent — the UI hides
+    the outputs panel rather than showing a broken job.
+    """
+    if not paths.generation.exists():
+        return None
+    try:
+        raw = json.loads(paths.generation.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("unreadable generation record at %s: %s", paths.generation, exc)
+        return None
+    return raw if isinstance(raw, dict) else None
 
 
 def summarize(jobs_dir: Path, job_id: str) -> JobSummary | None:
