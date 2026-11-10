@@ -190,6 +190,28 @@ def test_unassociated_findings_become_questions() -> None:
     assert any("500" in q for q in spec.unresolved_questions)
 
 
+def test_uninterpretable_annotation_questions_carry_the_grammar_hint() -> None:
+    """A line the parser cannot read must say what it CAN read — otherwise a
+    reviewer concludes the tool is broken rather than their formatting."""
+    doc = document(
+        blk("SIDE PANEL - QTY 2", 0.08, 0.19),
+        blk("18MM BIRCH PLYWOOD", 0.08, 0.215),
+        blk("720 X 380 X 18", 0.08, 0.24),
+        blk("PROJECT: ENTRY-CABINET-001", 0.60, 0.05),
+        blk("UNITS: MM", 0.60, 0.08),
+        # Normal-case prose from a design tool: mixed case, vulgar fraction.
+        blk("drawer front — 21¾ in × 8½ in", 0.60, 0.30),
+    )
+    assembly = assemble(doc)
+    assert assembly.unassociated, "the prose line must become a question, not vanish"
+    assert all(u.kind is UnassociatedKind.UNPARSEABLE_ANNOTATION for u in assembly.unassociated)
+    spec = build_spec(assembly, source_name="test.pdf")
+    hinted = [q for q in spec.unresolved_questions if "could not interpret annotation" in q]
+    assert hinted, "the uninterpretable line must produce a question"
+    assert all("uppercase shop-drawing callouts" in q for q in hinted)
+    assert all("SIDE PANEL — QTY 2" in q for q in hinted)
+
+
 def test_rejected_vision_readings_land_in_questions() -> None:
     assembly = assemble(full_callout())
     extra = Unassociated(

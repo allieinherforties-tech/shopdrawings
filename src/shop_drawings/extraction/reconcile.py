@@ -56,6 +56,15 @@ def _source(block: TextBlock) -> SourceReference:
     return SourceReference(page=block.page, region=region.as_tuple(), text=block.text)
 
 
+#: Appended to uninterpretable-annotation questions: without it a reviewer
+#: cannot tell whether the tool or their formatting is at fault.
+_GRAMMAR_HINT: Final = (
+    " The v1 parser reads uppercase shop-drawing callouts like "
+    "'SIDE PANEL — QTY 2' with tagged dimensions. Re-annotate the drawing "
+    "in that style, or record the reading by answering this question."
+)
+
+
 def _question(unassociated: Unassociated) -> str:
     where = (
         f"page {unassociated.block.page}, region "
@@ -66,6 +75,8 @@ def _question(unassociated: Unassociated) -> str:
         return f"Unassigned value {unassociated.detail} — at {where}. What does it dimension?"
     if unassociated.kind is UnassociatedKind.VARIANT_DIMENSION:
         return f"{unassociated.detail} — at {where}. Which value applies?"
+    if unassociated.kind is UnassociatedKind.UNPARSEABLE_ANNOTATION:
+        return f"{unassociated.detail} — at {where}. Please resolve.{_GRAMMAR_HINT}"
     return f"{unassociated.detail} — at {where}. Please resolve."
 
 
