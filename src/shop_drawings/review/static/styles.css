@@ -158,6 +158,56 @@ section.done-zone { border-left: 4px solid var(--green); }
 
 .stack { display: flex; flex-direction: column; gap: 12px; }
 
+/* About this demo — plain words about what is real and what is prototype.
+   Blue accent: informational, not blocking (red) or warning (amber). */
+#sec-about { border-left: 4px solid var(--blue); }
+#sec-about h2 { margin-bottom: 10px; }
+.about-cols { display: flex; gap: 24px; flex-wrap: wrap; }
+.about-cols > div { flex: 1 1 320px; }
+.about-cols h3 {
+  font-size: 13px;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--blue);
+}
+.about-cols p { margin: 0; font-size: 14px; }
+.about-note {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Queue-by-kind navigation */
+#queue-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  font-size: 13px;
+}
+.queue-nav-label { color: var(--muted); font-weight: 550; }
+#queue-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  text-decoration: none;
+}
+#queue-nav a:hover { border-color: var(--muted); }
+#queue-nav a b {
+  font-family: var(--mono);
+  font-weight: 650;
+  color: var(--muted);
+}
+
 /* Question cards */
 .question {
   border: 1px solid var(--line);
@@ -166,6 +216,15 @@ section.done-zone { border-left: 4px solid var(--green); }
   background: var(--red-bg);
 }
 .question p { margin: 0 0 10px; font-weight: 550; }
+.question .q-num {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  color: var(--red);
+  margin-bottom: 3px;
+}
 .question .answer-row { display: flex; gap: 8px; }
 .question input { flex: 1; }
 
@@ -214,6 +273,7 @@ input:focus { outline: 2px solid var(--blue); outline-offset: 0; border-color: v
 .value-row .ident .label { font-weight: 550; }
 .value-row .ident .src { color: var(--muted); font-size: 12.5px; font-family: var(--mono); }
 .value-row.approved { background: var(--green-bg); border-color: #cfe3d8; }
+.value-row.flagged { border-left: 4px solid var(--amber); }
 
 .status-chip {
   font-size: 11px;
@@ -225,7 +285,8 @@ input:focus { outline: 2px solid var(--blue); outline-offset: 0; border-color: v
   background: var(--paper);
   color: var(--muted);
 }
-.status-chip.approved { background: var(--green); color: #fff; }
+.status-chip.status-approved, .status-chip.approved { background: var(--green); color: #fff; }
+.status-chip.status-needs_review { background: var(--amber-bg); color: var(--amber); }
 
 .confidence {
   width: 110px;
@@ -253,7 +314,14 @@ input:focus { outline: 2px solid var(--blue); outline-offset: 0; border-color: v
 }
 .part-group .stack { gap: 8px; }
 
-/* Crops */
+/* Provenance: one click from a row to its page-region crop. */
+.source-btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 10px;
+  background: var(--paper);
+  flex: none;
+}
 .crop {
   position: relative;
   width: 96px;
@@ -320,6 +388,18 @@ input:focus { outline: 2px solid var(--blue); outline-offset: 0; border-color: v
   position: absolute;
   border: 2px solid var(--red);
   box-shadow: 0 0 0 9999px rgba(179, 56, 44, 0.10);
+}
+.crop-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 10px 16px;
+  background: rgba(26, 29, 33, 0.82);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 13px;
 }
 
 .hidden { display: none; }
