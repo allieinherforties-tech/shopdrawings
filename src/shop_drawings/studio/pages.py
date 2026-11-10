@@ -9,8 +9,15 @@ from __future__ import annotations
 
 from html import escape
 from pathlib import Path
+from urllib.parse import quote
 
-from shop_drawings.studio.jobs import JobPaths, read_failure
+from shop_drawings.studio.jobs import (
+    GenerationStatus,
+    JobPaths,
+    output_labels,
+    read_failure,
+    read_generation_record,
+)
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -61,6 +68,82 @@ _PAGE = """<!DOCTYPE html>
 </body>
 </html>
 """
+
+_OUTPUTS_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop Drawings — fabrication outputs</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div>
+        <h1>Shop Drawings</h1>
+        <p class="meta">job {job_id}</p>
+      </div>
+      <div class="header-actions">
+        <a class="button-link" href="/jobs/{job_id}/">Back to review</a>
+        <a class="button-link" href="/">Upload another design</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Fabrication outputs</h2>
+      {body}
+    </section>
+  </main>
+</body>
+</html>
+"""
+
+
+def outputs_page(paths: JobPaths) -> str:
+    """The fabrication-outputs page for one job, in whatever state it is.
+
+    Four states, each honest about what exists: nothing generated yet
+    (the review gate has not approved the spec), a recorded failure (what
+    went wrong, verbatim), generated files (download links), or an
+    unreadable record — treated as not generated, never as a guess.
+    """
+    record = read_generation_record(paths)
+    if record is None:
+        body = (
+            '<p class="lede">No fabrication outputs yet. Files are generated '
+            "when the review gate approves this spec.</p>"
+        )
+    elif record.get("status") == GenerationStatus.FAILED.value:
+        error = str(record.get("error", "")) or "(no detail was recorded)"
+        body = (
+            "<h3>Generation failed</h3>"
+            '<pre class="error-detail">' + escape(error) + "</pre>"
+            '<p class="lede">Nothing was shipped — no partial or unverified '
+            "file is ever downloadable. Reopen review if the spec needs "
+            "changes, then approve again to regenerate.</p>"
+        )
+    else:
+        items = "".join(
+            f'<li><a href="/jobs/{paths.job_id}/outputs/{quote(name)}" download>'
+            f"{escape(label)}</a></li>"
+            for label, name in output_labels(record)
+        )
+        escalations = record.get("escalations")
+        note = ""
+        if isinstance(escalations, list) and escalations:
+            note = (
+                '<p class="lede">Parts the v1 library could not resolve were '
+                "not given geometry — their escalation packages are listed "
+                "below for a modeler to finish.</p>"
+            )
+        body = (
+            '<p class="lede">Generated from the approved spec — verified and '
+            "ready to download.</p>" + note + f'<ul class="log">{items}</ul>'
+        )
+    return _OUTPUTS_PAGE.format(job_id=escape(paths.job_id), body=body)
 
 
 def failed_job_page(jobs_dir: Path, job_id: str) -> str:

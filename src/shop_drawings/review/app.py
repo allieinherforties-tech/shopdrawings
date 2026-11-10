@@ -102,6 +102,26 @@ class ReviewPayload(BaseModel):
     gate_errors: list[str]
     spec_status: ReviewStatus
     log: list[LogEntry]
+    outputs: list[OutputLink] = Field(default_factory=list)
+
+
+class OutputLink(BaseModel):
+    """One downloadable fabrication output the UI offers as a link.
+
+    The review gate knows nothing about generation; a host that wires it
+    (the studio front door) supplies the links, and the UI simply renders
+    what it is given.
+    """
+
+    label: str
+    url: str
+
+
+#: Called after an approve succeeds — the host's chance to react (the
+#: studio runs generation there). Receives the request so the host can
+#: resolve which job was approved.
+ApprovedHook: TypeAlias = Callable[[Request], None]
+OutputsSource: TypeAlias = Callable[[Request], list[OutputLink]]
 
 
 def _find_page_image(source_images_dir: Path | None, page: int) -> Path | None:
@@ -135,6 +155,8 @@ def create_app(
     *,
     source_images_dir: ImageDirSource = None,
     vision_path: VisionPathSource = None,
+    on_approved: ApprovedHook | None = None,
+    outputs: OutputsSource | None = None,
 ) -> FastAPI:
     """Build the review app against one spec file — or, given a resolver,
     against whatever spec the request's job names.
@@ -142,6 +164,12 @@ def create_app(
     The store is constructed per request from the resolved path, so the
     gate (``ReviewStore`` and the schema behind it) behaves identically in
     both modes: same file-on-disk reads, same validation, same log.
+
+    ``on_approved`` is an optional post-approval hook (the studio runs
+    generation there); ``outputs`` optionally supplies downloadable
+    fabrication outputs for the current job, rendered by the UI when
+    present. Both keep this app independent of any host: nothing here
+    knows where outputs come from.
     """
 
     def _spec_for(request: Request) -> Path:
@@ -174,7 +202,7 @@ def create_app(
         # shows these errors verbatim instead of a generic failure.
         return JSONResponse(status_code=409, content={"gate_errors": exc.errors})
 
-    def review_payload(store: ReviewStore) -> ReviewPayload:
+    def review_payload(store: ReviewStore, request: Request | None = None) -> ReviewPayload:
         spec = store.reread()
         return ReviewPayload(
             spec=spec_payload(spec),
@@ -182,6 +210,7 @@ def create_app(
             gate_errors=spec.approval_errors(),
             spec_status=spec.status,
             log=store.read_log(),
+            outputs=outputs(request) if outputs and request is not None else [],
         )
 
     def _run(request: Request, action: Callable[[ReviewStore], FurnitureSpec]) -> ReviewPayload:
@@ -194,11 +223,11 @@ def create_app(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
-        return review_payload(_store_for(request))
+        return review_payload(_store_for(request), request)
 
     @app.get("/api/review", response_model=None)
     def get_review(request: Request) -> ReviewPayload:
-        return review_payload(_store_for(request))
+        return review_payload(_store_for(request), request)
 
     @app.post("/api/values", response_model=None)
     def correct_value(request: Request, correction: CorrectionRequest) -> ReviewPayload:
@@ -239,7 +268,15 @@ def create_app(
 
     @app.post("/api/approve", response_model=None)
     def approve(request: Request) -> ReviewPayload:
-        return _run(request, lambda store: store.approve())
+        _run(request, lambda store: store.approve())
+        if on_approved is not None:
+            # The approval is already persisted; a hook failure is the
+            # host's to report (the studio records it), so it is not
+            # caught here.
+            on_approved(request)
+        # Built after the hook so a host that generates on approval
+        # returns the download links in the same response.
+        return review_payload(_store_for(request), request)
 
     @app.get("/api/log", response_model=None)
     def get_log(request: Request) -> list[LogEntry]:

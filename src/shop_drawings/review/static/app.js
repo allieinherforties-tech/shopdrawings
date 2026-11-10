@@ -4,7 +4,7 @@
 
 "use strict";
 
-const state = { spec: null, queue: null, gateErrors: [], specStatus: "", log: [], vision: null };
+const state = { spec: null, queue: null, gateErrors: [], specStatus: "", log: [], vision: null, outputs: [] };
 
 const $ = (id) => document.getElementById(id);
 
@@ -127,7 +127,22 @@ function render() {
   renderConflicts(q.conflicts, approved);
   renderLowConfidence(q.low_confidence, approved);
   renderValues(approved);
+  renderOutputs();
   renderLog();
+}
+
+function renderOutputs() {
+  const section = $("sec-outputs");
+  const list = $("outputs");
+  if (!state.outputs.length) {
+    section.hidden = true;
+    list.innerHTML = "";
+    return;
+  }
+  list.innerHTML = state.outputs
+    .map((o) => `<li><a href="${escapeHtml(o.url)}" download>${escapeHtml(o.label)}</a></li>`)
+    .join("");
+  section.hidden = false;
 }
 
 function renderQuestions(questions, approved) {
