@@ -214,6 +214,11 @@ def _build_part(callout: PartCallout, questions: list[str]) -> Part:
         questions.append(
             f"Part {callout.part_id!r} states no material; recorded as {_UNKNOWN_MATERIAL!r}."
         )
+    if not callout.quantity_stated:
+        questions.append(
+            f"Part {callout.part_id!r} states no quantity — confirm how many pieces "
+            f"this line represents (recorded as {callout.quantity})."
+        )
     for attached in callout.dimensions:
         kind_text = attached.dimension.kind
         if kind_text in ("hole_diameter", "spacing"):

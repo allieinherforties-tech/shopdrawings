@@ -142,10 +142,16 @@ class ParsedConstraint:
 
 @dataclass(frozen=True)
 class PartLabel:
-    """A candidate part label line, with its declared quantity when present."""
+    """A candidate part label line, with its declared quantity when present.
+
+    ``quantity_stated`` distinguishes an explicit ``QTY n`` tail from the
+    default of 1 — a label without one becomes a dedicated review question
+    rather than a silent assumption.
+    """
 
     label: str
     quantity: int
+    quantity_stated: bool
     block: TextBlock
     confidence: float
 
